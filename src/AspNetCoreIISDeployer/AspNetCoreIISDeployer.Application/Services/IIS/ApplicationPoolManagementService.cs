@@ -1,10 +1,10 @@
 ﻿using AspNetCoreIISDeployer.Application.Configuration;
 
-namespace AspNetCoreIISDeployer.Application.Services.AppCmd
+namespace AspNetCoreIISDeployer.Application.Services.IIS
 {
-    public class ApplicationPoolManagementService : AppCmdServiceBase
+    public class ApplicationPoolManagementService : IISManagementServiceBase
     {
-        public ApplicationPoolManagementService(AppCmdConfiguration configuration) : base(configuration)
+        public ApplicationPoolManagementService(IISMangementConfiguration configuration) : base(configuration)
         {
         }
 
