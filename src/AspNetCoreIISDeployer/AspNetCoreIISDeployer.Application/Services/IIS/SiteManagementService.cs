@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using AspNetCoreIISDeployer.Application.Configuration;
 using AspNetCoreIISDeployer.Application.Exceptions;
 
@@ -33,7 +35,7 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
                 throw new SiteManagementException("The specified publish path does not exist.");
             }
 
-            if (httpPort != Port.None)
+            if (httpsPort != Port.None)
             {
                 if (string.IsNullOrWhiteSpace(certificateThumbprint))
                 {
@@ -48,23 +50,31 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
             int id = httpsPort != Port.None ? httpsPort : httpPort;
 
             var httpBinding = httpPort != Port.None ? $"http/*:{httpPort}:" : string.Empty;
-            var httpsBinding = httpsPort != Port.None ? $"https/*:{httpPort}:" : string.Empty;
+            var httpsBinding = httpsPort != Port.None ? $"https/*:{httpsPort}:" : string.Empty;
             var bindings = string.Join(",", httpBinding, httpsBinding);
 
             var addSiteCommandArguments = $"add site /name:{siteName} /id:{id} /physicalPath:\"{publishPath}\" /bindings:{bindings}";
             var assignSiteToAppPoolCommandArguments = $"set app \"{siteName}/\" /applicationPool:{appPoolName}";
 
+            var createAppPoolCommandResult = CreateAppPool(appPoolName);
             var addSiteCommandResult = ExecuteAppCmdCommand(addSiteCommandArguments);
             var assignSiteToAppPoolCommandResult = ExecuteAppCmdCommand(assignSiteToAppPoolCommandArguments);
 
+            // TODO: Should do more checks on the results. Sometimes 0 exitcode is returned even in case of an error and also sometimes errors are written to stdout instead of stderr.
             var result = new List<ConsoleOutput>();
 
+            result.AddRange(createAppPoolCommandResult.Output);
             result.AddRange(addSiteCommandResult.Output);
             result.AddRange(assignSiteToAppPoolCommandResult.Output);
 
             if (httpsPort != Port.None)
             {
-                var bindCertToSiteCommandArguments = $"http add sslcert ipport=0.0.0.0:{httpsPort} certhash={certificateThumbprint} appid='{{{httpsPort}}}'";
+                var emptyAppId = "00000000000000000000000000000000";
+                var httpsPortString = httpsPort.ToString();
+
+                var appId = Guid.Parse(new string(emptyAppId.Take(emptyAppId.Length - httpsPortString.Length).ToArray()) + httpsPortString);
+
+                var bindCertToSiteCommandArguments = $"http add sslcert ipport=0.0.0.0:{httpsPort} certhash={certificateThumbprint} appid='{{{appId}}}'";
 
                 var bindCertToSiteCommandResult = ExecuteNetShCommand(bindCertToSiteCommandArguments);
 
@@ -97,6 +107,35 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
             ValidateSiteName(siteName);
 
             var arguments = $"stop site \"{siteName}\"";
+
+            return ExecuteAppCmdCommand(arguments);
+        }
+
+        // TODO: Refactpr apppool operations (either keep here or at ApplicationPoolManagementService)
+        public CommandLineProcessResult StartAppPool(string appPoolName)
+        {
+            var arguments = $"start apppool {appPoolName}";
+
+            return ExecuteAppCmdCommand(arguments);
+        }
+
+        public CommandLineProcessResult StopAppPool(string appPoolName)
+        {
+            var arguments = $"stop apppool {appPoolName}";
+
+            return ExecuteAppCmdCommand(arguments);
+        }
+
+        public CommandLineProcessResult CreateAppPool(string appPoolName)
+        {
+            var arguments = $"add apppool /name:{appPoolName}";
+
+            return ExecuteAppCmdCommand(arguments);
+        }
+
+        public CommandLineProcessResult DeleteAppPool(string appPoolName)
+        {
+            var arguments = $"delete apppool {appPoolName}";
 
             return ExecuteAppCmdCommand(arguments);
         }

@@ -14,7 +14,7 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
 
         public Port(int portNumber)
         {
-            if (portNumber < Min || portNumber > Max)
+            if (portNumber != NoPortAssignment && (portNumber < Min || portNumber > Max))
             {
                 throw new ArgumentOutOfRangeException(nameof(portNumber), $"The value of '{nameof(portNumber)}' must be between {Min} and {Max} inclusive.");
             }

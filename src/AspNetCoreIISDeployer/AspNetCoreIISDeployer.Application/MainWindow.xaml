@@ -11,8 +11,6 @@
             <ColumnDefinition Width="2*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        
-        
 
         <Border DataContext="{Binding AppList}">
             <ItemsControl ItemsSource="{Binding Apps}">
@@ -32,6 +30,8 @@
                                 <TextBlock Margin="3">https://localhost:<Run Text="{Binding Path=AppModel.HttpsPort}"></Run></TextBlock>
 
                                 <StackPanel Orientation="Horizontal">
+
+                                    <Button Margin="3" Padding="3" Command="{Binding CreateSiteCommand}">Create</Button>
                                     <Button Margin="3" Padding="3" IsEnabled="False">Delete</Button>
                                     <Button Margin="3" Padding="3" IsEnabled="False">Configure</Button>
                                     <Button Margin="3" Padding="3" IsEnabled="False">Open folder</Button>
