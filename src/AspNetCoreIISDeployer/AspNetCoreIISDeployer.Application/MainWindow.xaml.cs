@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using AspNetCoreIISDeployer.Application.ViewModels;
 
 namespace AspNetCoreIISDeployer.Application
 {
@@ -9,6 +10,8 @@ namespace AspNetCoreIISDeployer.Application
     {
         public MainWindow()
         {
+            DataContext = new MainWindowViewModel();
+
             InitializeComponent();
         }
     }

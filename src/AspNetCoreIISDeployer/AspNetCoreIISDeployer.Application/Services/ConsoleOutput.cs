@@ -11,5 +11,10 @@
         public string Text { get; }
 
         public bool IsError { get; }
+
+        public override string ToString()
+        {
+            return Text;
+        }
     }
 }

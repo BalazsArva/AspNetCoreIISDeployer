@@ -11,24 +11,42 @@
             <ColumnDefinition Width="2*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
+        
+        
 
-        <ListView>
-            <ListViewItem>
-                <StackPanel>
-                    <Label>IdentityProvider</Label>
-                    <StackPanel Orientation="Horizontal">
-                        <Button>Delete</Button>
-                        <Button>Configure</Button>
-                        <Button>Open folder</Button>
-                        <Button>Fetch</Button>
-                        <Button>Build &amp; publish</Button>
-                        <Button>Start</Button>
-                        <Button>Stop</Button>
-                        <Button>Restart</Button>
-                        <Button>Open site</Button>
-                    </StackPanel>
-                </StackPanel>
-            </ListViewItem>
-        </ListView>
+        <Border DataContext="{Binding AppList}">
+            <ItemsControl ItemsSource="{Binding Apps}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="3" Padding="3" BorderThickness="1" BorderBrush="#0099af">
+
+                            <StackPanel>
+
+                                <TextBlock Margin="3" FontSize="18" FontWeight="SemiBold">
+                                    <Run Foreground="#999999" Text="{Binding Path=AppModel.AppPoolName}"></Run>
+                                    <Run Foreground="#999999"> / </Run>
+                                    <Run Foreground="#333333" Text="{Binding Path=AppModel.SiteName}"></Run>
+                                </TextBlock>
+
+                                <TextBlock Margin="3">http://localhost:<Run Text="{Binding Path=AppModel.HttpPort}"></Run></TextBlock>
+                                <TextBlock Margin="3">https://localhost:<Run Text="{Binding Path=AppModel.HttpsPort}"></Run></TextBlock>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Margin="3" Padding="3" IsEnabled="False">Delete</Button>
+                                    <Button Margin="3" Padding="3" IsEnabled="False">Configure</Button>
+                                    <Button Margin="3" Padding="3" IsEnabled="False">Open folder</Button>
+                                    <Button Margin="3" Padding="3" IsEnabled="False">Fetch</Button>
+                                    <Button Margin="3" Padding="3" Command="{Binding PublishAppCommand}">Build &amp; publish</Button>
+                                    <Button Margin="3" Padding="3" Command="{Binding StartSiteCommand}">Start</Button>
+                                    <Button Margin="3" Padding="3" Command="{Binding StopSiteCommand}">Stop</Button>
+                                    <Button Margin="3" Padding="3" Command="{Binding RestartSiteCommand}">Restart</Button>
+                                    <Button Margin="3" Padding="3" IsEnabled="False">Open site</Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
     </Grid>
 </Window>

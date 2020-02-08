@@ -2,7 +2,7 @@
 
 namespace AspNetCoreIISDeployer.Application.Services.DotNet
 {
-    public class DotNetPublishService : DotNetServiceBase
+    public class DotNetPublishService : DotNetServiceBase, IDotNetPublishService
     {
         public DotNetPublishService(DotNetConfiguration dotNetConfiguration) : base(dotNetConfiguration)
         {

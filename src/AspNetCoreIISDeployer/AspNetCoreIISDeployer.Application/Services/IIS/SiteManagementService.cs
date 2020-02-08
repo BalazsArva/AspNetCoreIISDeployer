@@ -5,7 +5,7 @@ using AspNetCoreIISDeployer.Application.Exceptions;
 
 namespace AspNetCoreIISDeployer.Application.Services.IIS
 {
-    public class SiteManagementService : IISManagementServiceBase
+    public class SiteManagementService : IISManagementServiceBase, ISiteManagementService
     {
         public SiteManagementService(IISMangementConfiguration configuration) : base(configuration)
         {
