@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using AspNetCoreIISDeployer.Application.Configuration;
 using AspNetCoreIISDeployer.Application.Exceptions;
 
@@ -10,7 +11,17 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
         {
         }
 
-        public CommandLineProcessResult Create(string siteName, Port httpPort, Port httpsPort, string publishPath)
+        public CommandLineProcessResult Create(string appPoolName, string siteName, Port httpPort, string publishPath)
+        {
+            return Create(appPoolName, siteName, httpPort, Port.None, null, publishPath);
+        }
+
+        public CommandLineProcessResult Create(string appPoolName, string siteName, Port httpsPort, string certificateThumbprint, string publishPath)
+        {
+            return Create(appPoolName, siteName, Port.None, httpsPort, certificateThumbprint, publishPath);
+        }
+
+        public CommandLineProcessResult Create(string appPoolName, string siteName, Port httpPort, Port httpsPort, string certificateThumbprint, string publishPath)
         {
             if (httpPort == Port.None && httpsPort == Port.None)
             {
@@ -22,6 +33,16 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
                 throw new SiteManagementException("The specified publish path does not exist.");
             }
 
+            if (httpPort != Port.None)
+            {
+                if (string.IsNullOrWhiteSpace(certificateThumbprint))
+                {
+                    throw new SiteManagementException("A certificate thumbprint must be provided if the site uses HTTPS binding.");
+                }
+
+                // TODO: Validate existence of certificate based on thumbprint
+            }
+
             ValidateSiteName(siteName);
 
             int id = httpsPort != Port.None ? httpsPort : httpPort;
@@ -30,9 +51,27 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
             var httpsBinding = httpsPort != Port.None ? $"https/*:{httpPort}:" : string.Empty;
             var bindings = string.Join(",", httpBinding, httpsBinding);
 
-            var arguments = $"add site /name:{siteName} /id:{id} /physicalPath:\"{publishPath}\" /bindings:{bindings}";
+            var addSiteCommandArguments = $"add site /name:{siteName} /id:{id} /physicalPath:\"{publishPath}\" /bindings:{bindings}";
+            var assignSiteToAppPoolCommandArguments = $"set app \"{siteName}/\" /applicationPool:{appPoolName}";
 
-            return ExecuteAppCmdCommand(arguments);
+            var addSiteCommandResult = ExecuteAppCmdCommand(addSiteCommandArguments);
+            var assignSiteToAppPoolCommandResult = ExecuteAppCmdCommand(assignSiteToAppPoolCommandArguments);
+
+            var result = new List<ConsoleOutput>();
+
+            result.AddRange(addSiteCommandResult.Output);
+            result.AddRange(assignSiteToAppPoolCommandResult.Output);
+
+            if (httpsPort != Port.None)
+            {
+                var bindCertToSiteCommandArguments = $"http add sslcert ipport=0.0.0.0:{httpsPort} certhash={certificateThumbprint} appid='{{{httpsPort}}}'";
+
+                var bindCertToSiteCommandResult = ExecuteNetShCommand(bindCertToSiteCommandArguments);
+
+                result.AddRange(bindCertToSiteCommandResult.Output);
+            }
+
+            return new CommandLineProcessResult(0, result);
         }
 
         public CommandLineProcessResult Delete(string siteName)

@@ -20,8 +20,7 @@ namespace AspNetCoreIISDeployer.Application.Services
 
             var process = Process.Start(processStartInfo);
 
-            var outputLines = new List<string>();
-            var errorLines = new List<string>();
+            var output = new List<ConsoleOutput>();
             var canReadMore = true;
             while (canReadMore)
             {
@@ -30,12 +29,12 @@ namespace AspNetCoreIISDeployer.Application.Services
 
                 if (canReadFromStdOut)
                 {
-                    outputLines.Add(process.StandardOutput.ReadLine());
+                    output.Add(new ConsoleOutput(process.StandardOutput.ReadLine(), false));
                 }
 
                 if (canReadFromStdErr)
                 {
-                    errorLines.Add(process.StandardError.ReadLine());
+                    output.Add(new ConsoleOutput(process.StandardError.ReadLine(), true));
                 }
 
                 canReadMore = canReadFromStdOut || canReadFromStdErr;
@@ -43,7 +42,7 @@ namespace AspNetCoreIISDeployer.Application.Services
 
             process.WaitForExit();
 
-            return new CommandLineProcessResult(process.ExitCode, outputLines, errorLines);
+            return new CommandLineProcessResult(process.ExitCode, output);
         }
     }
 }

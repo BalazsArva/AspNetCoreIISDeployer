@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using AspNetCoreIISDeployer.Application.Configuration;
@@ -25,7 +23,7 @@ namespace AspNetCoreIISDeployer.Application.Services.DotNet
 
             if (commandResult.ExitCode != 0)
             {
-                throw new DotNetCliException($"Failed to execute the '{arguments}' .NET CLI command.", commandResult.ErrorLines);
+                throw new DotNetCliException($"Failed to execute the '{arguments}' .NET CLI command.", commandResult.Output);
             }
 
             return commandResult;
@@ -46,36 +44,9 @@ namespace AspNetCoreIISDeployer.Application.Services.DotNet
             // TODO: Refactor to use the generic command executor method. Not sure if this method will even be needed, maybe can check the output for version support errors as needed.
             EnsureDotNetCliPresent();
 
-            var processStartInfo = new ProcessStartInfo(DotNetConfiguration.DotNetCliPath, "--list-sdks")
-            {
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true
-            };
+            var dotNetListSdksCommandResult = ExecuteCommandLineApplication(DotNetConfiguration.DotNetCliPath, "--list-sdks");
 
-            var dotNetProcess = Process.Start(processStartInfo);
-
-            dotNetProcess.WaitForExit();
-
-            var outputLines = new List<string>();
-            var errorLines = new List<string>();
-
-            while (!dotNetProcess.StandardOutput.EndOfStream)
-            {
-                outputLines.Add(dotNetProcess.StandardOutput.ReadLine());
-            }
-
-            while (!dotNetProcess.StandardError.EndOfStream)
-            {
-                errorLines.Add(dotNetProcess.StandardError.ReadLine());
-            }
-
-            if (errorLines.Count > 0)
-            {
-                throw new DotNetCliException("Could not retrieve the list of installed SDKs.", errorLines);
-            }
-
-            if (outputLines.Any(line => version.IsCompatible(line)))
+            if (dotNetListSdksCommandResult.Output.Any(line => !line.IsError && version.IsCompatible(line.Text)))
             {
                 return;
             }

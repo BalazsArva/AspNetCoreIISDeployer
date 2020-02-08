@@ -22,7 +22,7 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
 
             if (commandResult.ExitCode != 0)
             {
-                throw new AppCmdException($"Failed to execute the '{arguments}' AppCmd command.", commandResult.ErrorLines);
+                throw new AppCmdException($"Failed to execute the '{arguments}' AppCmd command.", commandResult.Output);
             }
 
             return commandResult;
@@ -36,7 +36,7 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
 
             if (commandResult.ExitCode != 0)
             {
-                throw new AppCmdException($"Failed to execute the '{arguments}' netsh command.", commandResult.ErrorLines);
+                throw new AppCmdException($"Failed to execute the '{arguments}' netsh command.", commandResult.Output);
             }
 
             return commandResult;

@@ -4,17 +4,14 @@ namespace AspNetCoreIISDeployer.Application.Services
 {
     public class CommandLineProcessResult
     {
-        public CommandLineProcessResult(int exitCode, IReadOnlyList<string> outputLines, IReadOnlyList<string> errorLines)
+        public CommandLineProcessResult(int exitCode, IReadOnlyList<ConsoleOutput> output)
         {
             ExitCode = exitCode;
-            OutputLines = outputLines ?? new List<string>();
-            ErrorLines = errorLines ?? new List<string>();
+            Output = output ?? new List<ConsoleOutput>();
         }
 
         public int ExitCode { get; }
 
-        public IReadOnlyList<string> OutputLines { get; }
-
-        public IReadOnlyList<string> ErrorLines { get; }
+        public IReadOnlyList<ConsoleOutput> Output { get; }
     }
 }
