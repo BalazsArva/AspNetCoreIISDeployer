@@ -1,5 +1,4 @@
 ﻿using AspNetCoreIISDeployer.Application.Configuration;
-using AspNetCoreIISDeployer.Application.Exceptions;
 
 namespace AspNetCoreIISDeployer.Application.Services.DotNet
 {
@@ -11,16 +10,9 @@ namespace AspNetCoreIISDeployer.Application.Services.DotNet
         {
         }
 
-        public DotNetCommandResult SetupDotNetDevCert()
+        public CommandLineProcessResult SetupDotNetDevCert()
         {
-            var commandResult = ExecuteDotNetCommand(Arguments);
-
-            if (commandResult.ExitCode != 0)
-            {
-                throw new DotNetCliException($"Failed to execute the '{Arguments}' .NET CLI command.", commandResult.ErrorLines);
-            }
-
-            return commandResult;
+            return ExecuteDotNetCommand(Arguments);
         }
     }
 }

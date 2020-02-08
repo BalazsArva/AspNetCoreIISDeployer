@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace AspNetCoreIISDeployer.Application.Services.DotNet
+namespace AspNetCoreIISDeployer.Application.Services
 {
-    public class DotNetCommandResult
+    public class CommandLineProcessResult
     {
-        public DotNetCommandResult(int exitCode, IReadOnlyList<string> outputLines, IReadOnlyList<string> errorLines)
+        public CommandLineProcessResult(int exitCode, IReadOnlyList<string> outputLines, IReadOnlyList<string> errorLines)
         {
             ExitCode = exitCode;
             OutputLines = outputLines ?? new List<string>();

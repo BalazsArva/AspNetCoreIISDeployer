@@ -1,5 +1,4 @@
 ﻿using AspNetCoreIISDeployer.Application.Configuration;
-using AspNetCoreIISDeployer.Application.Exceptions;
 
 namespace AspNetCoreIISDeployer.Application.Services.DotNet
 {
@@ -9,18 +8,11 @@ namespace AspNetCoreIISDeployer.Application.Services.DotNet
         {
         }
 
-        public DotNetCommandResult Build(string projectPath, string configuration, string outputDirectory)
+        public CommandLineProcessResult Build(string projectPath, string configuration, string outputDirectory)
         {
             var arguments = $"build -c {configuration} -o \"{outputDirectory}\" \"{projectPath}\"";
 
-            var commandResult = ExecuteDotNetCommand(arguments);
-
-            if (commandResult.ExitCode != 0)
-            {
-                throw new DotNetCliException($"Failed to execute the '{arguments}' .NET CLI command.", commandResult.ErrorLines);
-            }
-
-            return commandResult;
+            return ExecuteDotNetCommand(arguments);
         }
     }
 }

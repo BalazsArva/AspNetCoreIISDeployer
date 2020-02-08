@@ -8,13 +8,27 @@ using AspNetCoreIISDeployer.Application.Exceptions;
 
 namespace AspNetCoreIISDeployer.Application.Services.DotNet
 {
-    public abstract class DotNetServiceBase
+    public abstract class DotNetServiceBase : CommandLineToolServiceBase
     {
         public DotNetConfiguration DotNetConfiguration { get; }
 
         protected DotNetServiceBase(DotNetConfiguration dotNetConfiguration)
         {
             DotNetConfiguration = dotNetConfiguration ?? throw new ArgumentNullException(nameof(dotNetConfiguration));
+        }
+
+        protected CommandLineProcessResult ExecuteDotNetCommand(string arguments)
+        {
+            EnsureDotNetCliPresent();
+
+            var commandResult = ExecuteCommandLineApplication(DotNetConfiguration.DotNetCliPath, arguments);
+
+            if (commandResult.ExitCode != 0)
+            {
+                throw new DotNetCliException($"Failed to execute the '{arguments}' .NET CLI command.", commandResult.ErrorLines);
+            }
+
+            return commandResult;
         }
 
         protected virtual void EnsureDotNetCliPresent()
@@ -67,45 +81,6 @@ namespace AspNetCoreIISDeployer.Application.Services.DotNet
             }
 
             throw new DotNetSdkMissingException($"Could not find a .NET SDK that is compatible with the specified version '{version}'.");
-        }
-
-        protected DotNetCommandResult ExecuteDotNetCommand(string arguments)
-        {
-            EnsureDotNetCliPresent();
-
-            var processStartInfo = new ProcessStartInfo(DotNetConfiguration.DotNetCliPath, arguments)
-            {
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true
-            };
-
-            var dotNetBuildProcess = Process.Start(processStartInfo);
-
-            var outputLines = new List<string>();
-            var errorLines = new List<string>();
-            var canReadMore = true;
-            while (canReadMore)
-            {
-                var canReadFromStdOut = dotNetBuildProcess.StandardOutput.EndOfStream == false;
-                var canReadFromStdErr = dotNetBuildProcess.StandardError.EndOfStream == false;
-
-                if (canReadFromStdOut)
-                {
-                    outputLines.Add(dotNetBuildProcess.StandardOutput.ReadLine());
-                }
-
-                if (canReadFromStdErr)
-                {
-                    errorLines.Add(dotNetBuildProcess.StandardError.ReadLine());
-                }
-
-                canReadMore = canReadFromStdOut || canReadFromStdErr;
-            }
-
-            dotNetBuildProcess.WaitForExit();
-
-            return new DotNetCommandResult(dotNetBuildProcess.ExitCode, outputLines, errorLines);
         }
     }
 }
