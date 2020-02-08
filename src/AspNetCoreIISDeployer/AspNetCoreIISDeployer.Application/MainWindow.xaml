@@ -1,0 +1,34 @@
+﻿<Window x:Class="AspNetCoreIISDeployer.Application.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AspNetCoreIISDeployer.Application"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <ListView>
+            <ListViewItem>
+                <StackPanel>
+                    <Label>IdentityProvider</Label>
+                    <StackPanel Orientation="Horizontal">
+                        <Button>Delete</Button>
+                        <Button>Configure</Button>
+                        <Button>Open folder</Button>
+                        <Button>Fetch</Button>
+                        <Button>Build &amp; publish</Button>
+                        <Button>Start</Button>
+                        <Button>Stop</Button>
+                        <Button>Restart</Button>
+                        <Button>Open site</Button>
+                    </StackPanel>
+                </StackPanel>
+            </ListViewItem>
+        </ListView>
+    </Grid>
+</Window>
