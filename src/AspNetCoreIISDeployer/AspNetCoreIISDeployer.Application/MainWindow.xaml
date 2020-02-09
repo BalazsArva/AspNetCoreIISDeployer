@@ -5,73 +5,113 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AspNetCoreIISDeployer.Application"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        Title="MainWindow" Height="768" Width="1024">
+    <DockPanel LastChildFill="True">
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+            <Button Margin="3" Padding="3">Install ASP.NET Core HTTPS Development Certificate (NYI)</Button>
+            <Button Margin="3" Padding="3">Check certificate validity (NYI)</Button>
+            <Button Margin="3" Padding="3">Install IIS (NYI)</Button>
+            <Button Margin="3" Padding="3">Install ASP.NET Core IIS hosting bundle (NYI)</Button>
+        </StackPanel>
+    
+        <Grid DockPanel.Dock="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" DataContext="{Binding AppList}">
-            <ItemsControl ItemsSource="{Binding Apps}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Margin="3" Padding="3" BorderThickness="1" BorderBrush="#0099af">
+            <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" DataContext="{Binding AppList}">
+                <ItemsControl ItemsSource="{Binding Apps}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="3" Padding="3" BorderThickness="1" BorderBrush="#0099af">
 
-                            <StackPanel>
+                                <StackPanel>
 
-                                <TextBlock Margin="3" FontSize="18" FontWeight="SemiBold">
-                                    <Run Foreground="#999999" Text="{Binding Path=AppModel.AppPoolName}" ToolTip="Application pool name"></Run>
-                                    <Run Foreground="#999999"> / </Run>
-                                    <Run Foreground="#333333" Text="{Binding Path=AppModel.SiteName}" ToolTip="Site name"></Run>
-                                </TextBlock>
+                                    <TextBlock Margin="3" FontSize="18" FontWeight="SemiBold">
+                                        <Run Foreground="#999999" Text="{Binding Path=AppModel.AppPoolName}" ToolTip="Application pool name"></Run>
+                                        <Run Foreground="#999999"> / </Run>
+                                        <Run Foreground="#333333" Text="{Binding Path=AppModel.SiteName}" ToolTip="Site name"></Run>
+                                    </TextBlock>
 
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
+                                    <Grid Margin="0,10,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
 
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Margin="3">http://localhost:<Run Text="{Binding Path=AppModel.HttpPort}" /></TextBlock>
-                                        <TextBlock Margin="3">https://localhost:<Run Text="{Binding Path=AppModel.HttpsPort}" /></TextBlock>
+                                        <StackPanel Grid.Column="0" Margin="0,0,50,0">
+                                            <TextBlock Margin="3">http://localhost:<Run Text="{Binding Path=AppModel.HttpPort}" /></TextBlock>
+                                            <TextBlock Margin="3">https://localhost:<Run Text="{Binding Path=AppModel.HttpsPort}" /></TextBlock>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="0,0,50,0">
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Deployed commit (NYI): </Run>
+                                                <Run>abc123 (from branch master)</Run>
+                                            </TextBlock>
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Checked-out branch in project folder (NYI): </Run>
+                                                <Run>master</Run>
+                                            </TextBlock>
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Environment: </Run>
+                                                <Run Text="{Binding Path=AppModel.Environment}" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Margin="0,0,50,0">
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Publish path: </Run>
+                                                <Run Text="{Binding Path=AppModel.PublishPath}" />
+                                            </TextBlock>
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Project path: </Run>
+                                                <Run Text="{Binding Path=AppModel.ProjectPath}" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                        <GroupBox Header="Entry configuration" Padding="5">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Margin="3" Padding="3" IsEnabled="False">Configure</Button>
+                                                <CheckBox VerticalAlignment="Center" Margin="3" Content="Periodic fetch (NYI)" IsEnabled="False" />
+                                            </StackPanel>
+                                        </GroupBox>
+
+                                        <GroupBox Header="App management" Padding="5">
+                                            <StackPanel Orientation="Horizontal">                                    
+                                                <Button Margin="3" Padding="3" Command="{Binding CreateSiteCommand}" IsEnabled="{Binding EnableManagement}">Create</Button>
+                                                <Button Margin="3" Padding="3" IsEnabled="False">Delete</Button>
+                                                <Button Margin="3" Padding="3" Command="{Binding PublishAppCommand}" IsEnabled="{Binding EnableManagement}">Build &amp; publish</Button>
+                                                <Button Margin="3" Padding="3" Command="{Binding StartSiteCommand}" IsEnabled="{Binding EnableManagement}">Start</Button>
+                                                <Button Margin="3" Padding="3" Command="{Binding StopSiteCommand}" IsEnabled="{Binding EnableManagement}">Stop</Button>
+                                                <Button Margin="3" Padding="3" Command="{Binding RestartSiteCommand}" IsEnabled="{Binding EnableManagement}">Restart</Button>
+                                            </StackPanel>
+                                        </GroupBox>
+
+                                        <GroupBox Header="Explore" Padding="5">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Margin="3" Padding="3" IsEnabled="False">Open publish folder</Button>
+                                                <Button Margin="3" Padding="3" IsEnabled="False">Open project folder</Button>
+                                                <Button Margin="3" Padding="3" IsEnabled="False">Open site</Button>
+                                            </StackPanel>
+                                        </GroupBox>
+
+                                        <GroupBox Header="Repository management" Padding="5">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Margin="3" Padding="3" IsEnabled="False">Fetch</Button>
+                                            </StackPanel>
+                                        </GroupBox>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="1">
-                                        <TextBlock Margin="3">
-                                            <Run FontWeight="SemiBold">Deployed commit: </Run>
-                                            <Run>NYI</Run>
-                                        </TextBlock>
-                                        <TextBlock Margin="3">
-                                            <Run FontWeight="SemiBold">Publish path: </Run>
-                                            <Run Text="{Binding Path=AppModel.PublishPath}" />
-                                        </TextBlock>
-                                        <TextBlock Margin="3">
-                                            <Run FontWeight="SemiBold">Project path: </Run>
-                                            <Run Text="{Binding Path=AppModel.ProjectPath}" />
-                                        </TextBlock>
-                                    </StackPanel>
-                                </Grid>
-
-                                
-
-                                <StackPanel Orientation="Horizontal">
-
-                                    <Button Margin="3" Padding="3" Command="{Binding CreateSiteCommand}" IsEnabled="{Binding EnableManagement}">Create</Button>
-                                    <Button Margin="3" Padding="3" IsEnabled="False">Delete</Button>
-                                    <Button Margin="3" Padding="3" IsEnabled="False">Configure</Button>
-                                    <Button Margin="3" Padding="3" IsEnabled="False">Open folder</Button>
-                                    <Button Margin="3" Padding="3" IsEnabled="False">Fetch</Button>
-                                    <Button Margin="3" Padding="3" Command="{Binding PublishAppCommand}" IsEnabled="{Binding EnableManagement}">Build &amp; publish</Button>
-                                    <Button Margin="3" Padding="3" Command="{Binding StartSiteCommand}" IsEnabled="{Binding EnableManagement}">Start</Button>
-                                    <Button Margin="3" Padding="3" Command="{Binding StopSiteCommand}" IsEnabled="{Binding EnableManagement}">Stop</Button>
-                                    <Button Margin="3" Padding="3" Command="{Binding RestartSiteCommand}" IsEnabled="{Binding EnableManagement}">Restart</Button>
-                                    <Button Margin="3" Padding="3" IsEnabled="False">Open site</Button>
                                 </StackPanel>
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-    </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <GridSplitter Grid.Column="0" BorderThickness="1" BorderBrush="Black"></GridSplitter>
+        </Grid>
+    </DockPanel>
 </Window>
