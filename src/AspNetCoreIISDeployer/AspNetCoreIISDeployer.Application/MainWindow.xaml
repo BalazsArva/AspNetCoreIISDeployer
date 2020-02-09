@@ -13,7 +13,7 @@
             <Button Margin="3" Padding="3">Install IIS (NYI)</Button>
             <Button Margin="3" Padding="3">Install ASP.NET Core IIS hosting bundle (NYI)</Button>
         </StackPanel>
-    
+
         <Grid DockPanel.Dock="Bottom">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" />
@@ -44,33 +44,51 @@
                                         <StackPanel Grid.Column="0" Margin="0,0,50,0">
                                             <TextBlock Margin="3">http://localhost:<Run Text="{Binding Path=AppModel.HttpPort}" /></TextBlock>
                                             <TextBlock Margin="3">https://localhost:<Run Text="{Binding Path=AppModel.HttpsPort}" /></TextBlock>
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Certificate hash (NYI): </Run>
+                                                <Run>NYI</Run>
+                                            </TextBlock>
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Certificate added to user's store: </Run>
+                                                <Run Background="Green" Foreground="White"> NYI </Run>
+                                            </TextBlock>
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Certificate added to machine store: </Run>
+                                                <Run Background="OrangeRed" Foreground="White"> NYI </Run>
+                                            </TextBlock>
                                         </StackPanel>
+
                                         <StackPanel Grid.Column="1" Margin="0,0,50,0">
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Deployed branch: </Run>
-                                                <Run Text="{Binding Path=GitPublishInfo.Branch, Mode=OneWay}" />
-                                            </TextBlock>
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Deployed commit: </Run>
-                                                <Run Text="{Binding Path=GitPublishInfo.Commit, Mode=OneWay}" />
-                                            </TextBlock>
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Checked-out branch in project folder (NYI): </Run>
-                                                <Run>master</Run>
-                                            </TextBlock>
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Environment: </Run>
-                                                <Run Text="{Binding Path=AppModel.Environment}" />
-                                            </TextBlock>
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="2" Margin="0,0,50,0">
                                             <TextBlock Margin="3">
                                                 <Run FontWeight="SemiBold">Publish path: </Run>
                                                 <Run Text="{Binding Path=AppModel.PublishPath}" />
                                             </TextBlock>
                                             <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Deployed branch: </Run>
+                                                <Run Text="{Binding Path=PublishInfo.Branch, Mode=OneWay}" />
+                                            </TextBlock>
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Deployed commit: </Run>
+                                                <Run Text="{Binding Path=PublishInfo.Commit, Mode=OneWay}" />
+                                            </TextBlock>
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Environment (NYI): </Run>
+                                                <Run>NYI</Run>
+                                            </TextBlock>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Margin="0,0,50,0">
+                                            <TextBlock Margin="3">
                                                 <Run FontWeight="SemiBold">Project path: </Run>
                                                 <Run Text="{Binding Path=AppModel.ProjectPath}" />
+                                            </TextBlock>
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Checked-out branch in project repository: </Run>
+                                                <Run Text="{Binding Path=RepositoryInfo.Branch, Mode=OneWay}" />
+                                            </TextBlock>
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Current commit in project repository: </Run>
+                                                <Run Text="{Binding Path=RepositoryInfo.Commit, Mode=OneWay}" />
                                             </TextBlock>
                                         </StackPanel>
                                     </Grid>
@@ -84,7 +102,7 @@
                                         </GroupBox>
 
                                         <GroupBox Header="App management" Padding="5">
-                                            <StackPanel Orientation="Horizontal">                                    
+                                            <StackPanel Orientation="Horizontal">
                                                 <Button Margin="3" Padding="3" Command="{Binding CreateSiteCommand}" IsEnabled="{Binding EnableManagement}">Create</Button>
                                                 <Button Margin="3" Padding="3" IsEnabled="False">Delete</Button>
                                                 <Button Margin="3" Padding="3" Command="{Binding PublishAppCommand}" IsEnabled="{Binding EnableManagement}">Build &amp; publish</Button>
@@ -104,6 +122,7 @@
 
                                         <GroupBox Header="Repository management" Padding="5">
                                             <StackPanel Orientation="Horizontal">
+                                                <Button Margin="3" Padding="3" Command="{Binding UpdateRepositoryInfoCommand}">Update repository information</Button>
                                                 <Button Margin="3" Padding="3" IsEnabled="False">Fetch</Button>
                                             </StackPanel>
                                         </GroupBox>

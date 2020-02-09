@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using AspNetCoreIISDeployer.Application.Models;
@@ -15,13 +16,16 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         private readonly DelegateCommand startSiteCommand;
         private readonly DelegateCommand restartSiteCommand;
         private readonly DelegateCommand createSiteCommand;
+        private readonly DelegateCommand updateRepositoryInfoCommand;
 
         private readonly IDotNetPublishService publishService;
         private readonly ISiteManagementService siteManagementService;
         private readonly IGitService gitService;
 
         private bool enableManagement = true;
-        private GitPublishInfo gitPublishInfo = GitPublishInfo.Empty;
+
+        private PublishInfoViewModel publishInfo = new PublishInfoViewModel();
+        private RepositoryInfoViewModel repositoryInfo = new RepositoryInfoViewModel();
 
         public AppViewModel(IDotNetPublishService publishService, ISiteManagementService siteManagementService, IGitService gitService, AppModel appModel)
         {
@@ -30,6 +34,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             startSiteCommand = new DelegateCommand(StartSite);
             restartSiteCommand = new DelegateCommand(RestartSite);
             createSiteCommand = new DelegateCommand(CreateSite);
+            updateRepositoryInfoCommand = new DelegateCommand(_ => UpdateRepositoryInfo());
 
             this.publishService = publishService ?? throw new ArgumentNullException(nameof(publishService));
             this.siteManagementService = siteManagementService ?? throw new ArgumentNullException(nameof(siteManagementService));
@@ -38,6 +43,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             AppModel = appModel;
 
             UpdatePublishInfo();
+            UpdateRepositoryInfo();
         }
 
         public ICommand PublishAppCommand => publishAppCommand;
@@ -50,18 +56,34 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
         public ICommand CreateSiteCommand => createSiteCommand;
 
+        public ICommand UpdateRepositoryInfoCommand => updateRepositoryInfoCommand;
+
         public AppModel AppModel { get; }
 
-        public GitPublishInfo GitPublishInfo
+        public RepositoryInfoViewModel RepositoryInfo
         {
-            get { return gitPublishInfo; }
+            get { return repositoryInfo; }
             set
             {
-                if (gitPublishInfo != value)
+                if (repositoryInfo != value)
                 {
-                    gitPublishInfo = value;
+                    repositoryInfo = value;
 
-                    NotifyPropertyChanged(nameof(GitPublishInfo));
+                    NotifyPropertyChanged(nameof(RepositoryInfo));
+                }
+            }
+        }
+
+        public PublishInfoViewModel PublishInfo
+        {
+            get { return publishInfo; }
+            set
+            {
+                if (publishInfo != value)
+                {
+                    publishInfo = value;
+
+                    NotifyPropertyChanged(nameof(PublishInfo));
                 }
             }
         }
@@ -95,6 +117,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             BackgroundInvokeManagementCommand(() =>
             {
                 siteManagementService.Stop(AppModel.SiteName);
+
+                UpdatePublishInfo();
             });
         }
 
@@ -103,6 +127,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             BackgroundInvokeManagementCommand(() =>
             {
                 siteManagementService.Start(AppModel.SiteName);
+
+                UpdatePublishInfo();
             });
         }
 
@@ -112,6 +138,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             {
                 siteManagementService.Stop(AppModel.SiteName);
                 siteManagementService.Start(AppModel.SiteName);
+
+                UpdatePublishInfo();
             });
         }
 
@@ -147,7 +175,21 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
         private void UpdatePublishInfo()
         {
-            GitPublishInfo = publishService.GetGitPublishInfo(AppModel.PublishPath);
+            var publishedAppInfo = publishService.GetGitPublishInfo(AppModel.PublishPath);
+
+            PublishInfo.Branch = publishedAppInfo.Branch;
+            PublishInfo.Commit = publishedAppInfo.Commit;
+        }
+
+        private void UpdateRepositoryInfo()
+        {
+            var repositoryPath = Path.GetDirectoryName(AppModel.ProjectPath);
+
+            var branch = gitService.GetCurrentBranch(repositoryPath);
+            var commit = gitService.GetCurrentCommitHash(repositoryPath);
+
+            RepositoryInfo.Branch = branch;
+            RepositoryInfo.Commit = commit;
         }
     }
 }
