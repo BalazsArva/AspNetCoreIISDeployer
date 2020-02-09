@@ -47,8 +47,12 @@
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Margin="0,0,50,0">
                                             <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Deployed commit (NYI): </Run>
-                                                <Run>abc123 (from branch master)</Run>
+                                                <Run FontWeight="SemiBold">Deployed branch: </Run>
+                                                <Run Text="{Binding Path=GitPublishInfo.Branch, Mode=OneWay}" />
+                                            </TextBlock>
+                                            <TextBlock Margin="3">
+                                                <Run FontWeight="SemiBold">Deployed commit: </Run>
+                                                <Run Text="{Binding Path=GitPublishInfo.Commit, Mode=OneWay}" />
                                             </TextBlock>
                                             <TextBlock Margin="3">
                                                 <Run FontWeight="SemiBold">Checked-out branch in project folder (NYI): </Run>

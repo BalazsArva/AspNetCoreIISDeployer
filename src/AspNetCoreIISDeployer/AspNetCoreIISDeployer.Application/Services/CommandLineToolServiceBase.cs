@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 
 namespace AspNetCoreIISDeployer.Application.Services
 {
@@ -11,11 +12,19 @@ namespace AspNetCoreIISDeployer.Application.Services
 
         protected CommandLineProcessResult ExecuteCommandLineApplication(string executablePath, string arguments)
         {
+            var workingDirectory = Path.GetDirectoryName(executablePath);
+
+            return ExecuteCommandLineApplication(executablePath, arguments, workingDirectory);
+        }
+
+        protected CommandLineProcessResult ExecuteCommandLineApplication(string executablePath, string arguments, string workingDirectory)
+        {
             var processStartInfo = new ProcessStartInfo(executablePath, arguments)
             {
                 CreateNoWindow = true,
                 RedirectStandardError = true,
-                RedirectStandardOutput = true
+                RedirectStandardOutput = true,
+                WorkingDirectory = workingDirectory
             };
 
             var process = Process.Start(processStartInfo);

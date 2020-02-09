@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using AspNetCoreIISDeployer.Application.Models;
 using AspNetCoreIISDeployer.Application.Services.DotNet;
+using AspNetCoreIISDeployer.Application.Services.Git;
 using AspNetCoreIISDeployer.Application.Services.IIS;
 
 namespace AspNetCoreIISDeployer.Application.ViewModels
@@ -9,13 +10,14 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
     {
         private ObservableCollection<AppViewModel> apps;
 
-        public AppListViewModel(IDotNetPublishService publishService, ISiteManagementService siteManagementService)
+        public AppListViewModel(IDotNetPublishService publishService, ISiteManagementService siteManagementService, IGitService gitService)
         {
             Apps = new ObservableCollection<AppViewModel>(new[]
             {
                 new AppViewModel(
                     publishService,
                     siteManagementService,
+                    gitService,
                     new AppModel
                     {
                         ProjectPath = @"F:\Dev\LearningOpenIdConnect\Oidc.IdentityProvider\Oidc.IdentityProvider\Oidc.IdentityProvider.Api\Oidc.IdentityProvider.Api.csproj",
@@ -31,6 +33,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
                 new AppViewModel(
                     publishService,
                     siteManagementService,
+                    gitService,
                     new AppModel
                     {
                         ProjectPath = @"F:\Dev\LearningOpenIdConnect\Oidc.IdentityProvider\Oidc.IdentityProvider\Oidc.IdentityProvider.Api\Oidc.IdentityProvider.Api.csproj",
@@ -46,6 +49,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
                 new AppViewModel(
                     publishService,
                     siteManagementService,
+                    gitService,
                     new AppModel
                     {
                         ProjectPath = @"F:\Dev\LearningOpenIdConnect\Oidc.IdentityProvider\Oidc.IdentityProvider\Oidc.IdentityProvider.Api\Oidc.IdentityProvider.Api.csproj",

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using AspNetCoreIISDeployer.Application.Models;
 using AspNetCoreIISDeployer.Application.Services.DotNet;
+using AspNetCoreIISDeployer.Application.Services.Git;
 using AspNetCoreIISDeployer.Application.Services.IIS;
 
 namespace AspNetCoreIISDeployer.Application.ViewModels
@@ -17,10 +18,12 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
         private readonly IDotNetPublishService publishService;
         private readonly ISiteManagementService siteManagementService;
+        private readonly IGitService gitService;
 
         private bool enableManagement = true;
+        private GitPublishInfo gitPublishInfo = GitPublishInfo.Empty;
 
-        public AppViewModel(IDotNetPublishService publishService, ISiteManagementService siteManagementService, AppModel appModel)
+        public AppViewModel(IDotNetPublishService publishService, ISiteManagementService siteManagementService, IGitService gitService, AppModel appModel)
         {
             publishAppCommand = new DelegateCommand(PublishApp);
             stopSiteCommand = new DelegateCommand(StopSite);
@@ -30,8 +33,11 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
             this.publishService = publishService ?? throw new ArgumentNullException(nameof(publishService));
             this.siteManagementService = siteManagementService ?? throw new ArgumentNullException(nameof(siteManagementService));
+            this.gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
 
             AppModel = appModel;
+
+            UpdatePublishInfo();
         }
 
         public ICommand PublishAppCommand => publishAppCommand;
@@ -45,6 +51,20 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         public ICommand CreateSiteCommand => createSiteCommand;
 
         public AppModel AppModel { get; }
+
+        public GitPublishInfo GitPublishInfo
+        {
+            get { return gitPublishInfo; }
+            set
+            {
+                if (gitPublishInfo != value)
+                {
+                    gitPublishInfo = value;
+
+                    NotifyPropertyChanged(nameof(GitPublishInfo));
+                }
+            }
+        }
 
         public bool EnableManagement
         {
@@ -65,6 +85,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             BackgroundInvokeManagementCommand(() =>
             {
                 publishService.Publish(AppModel.ProjectPath, AppModel.BuildConfiguration, AppModel.PublishPath, AppModel.Environment);
+
+                UpdatePublishInfo();
             });
         }
 
@@ -121,6 +143,11 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             {
                 EnableManagement = true;
             }
+        }
+
+        private void UpdatePublishInfo()
+        {
+            GitPublishInfo = publishService.GetGitPublishInfo(AppModel.PublishPath);
         }
     }
 }
