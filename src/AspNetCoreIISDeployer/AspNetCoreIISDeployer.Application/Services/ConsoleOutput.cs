@@ -16,5 +16,15 @@
         {
             return Text;
         }
+
+        public static ConsoleOutput FromSingleOutputLine(string outputLine)
+        {
+            return new ConsoleOutput(outputLine, false);
+        }
+
+        public static ConsoleOutput FromSingleErrorLine(string errorLine)
+        {
+            return new ConsoleOutput(errorLine, true);
+        }
     }
 }

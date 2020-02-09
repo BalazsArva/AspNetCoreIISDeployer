@@ -9,6 +9,13 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
 {
     public class SiteManagementService : IISManagementServiceBase, ISiteManagementService
     {
+        private const string NetShListCertificateBindingsCommandArgument = "http show sslcert";
+
+        private const string AppCmdListAppPoolsCommandArgument = "list apppool";
+        private const string AppCmdListSitesCommandArgument = "list site";
+
+        private const string EmptyAppId = "00000000000000000000000000000000";
+
         public SiteManagementService(IISMangementConfiguration configuration) : base(configuration)
         {
         }
@@ -47,17 +54,23 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
 
             ValidateSiteName(siteName);
 
-            int id = httpsPort != Port.None ? httpsPort : httpPort;
-
-            var httpBinding = httpPort != Port.None ? $"http/*:{httpPort}:" : string.Empty;
-            var httpsBinding = httpsPort != Port.None ? $"https/*:{httpsPort}:" : string.Empty;
-            var bindings = string.Join(",", httpBinding, httpsBinding);
-
-            var addSiteCommandArguments = $"add site /name:{siteName} /id:{id} /physicalPath:\"{publishPath}\" /bindings:{bindings}";
-            var assignSiteToAppPoolCommandArguments = $"set app \"{siteName}/\" /applicationPool:{appPoolName}";
-
             var createAppPoolCommandResult = CreateAppPool(appPoolName);
-            var addSiteCommandResult = ExecuteAppCmdCommand(addSiteCommandArguments);
+            var addSiteCommandResult = CommandLineProcessResult.Empty;
+
+            if (!SiteExists(siteName))
+            {
+                int id = httpsPort != Port.None ? httpsPort : httpPort;
+
+                var httpBinding = httpPort != Port.None ? $"http/*:{httpPort}:" : string.Empty;
+                var httpsBinding = httpsPort != Port.None ? $"https/*:{httpsPort}:" : string.Empty;
+                var bindings = string.Join(",", httpBinding, httpsBinding);
+
+                var addSiteCommandArguments = $"add site /name:{siteName} /id:{id} /physicalPath:\"{publishPath}\" /bindings:{bindings}";
+
+                addSiteCommandResult = ExecuteAppCmdCommand(addSiteCommandArguments);
+            }
+
+            var assignSiteToAppPoolCommandArguments = $"set app \"{siteName}/\" /applicationPool:{appPoolName}";
             var assignSiteToAppPoolCommandResult = ExecuteAppCmdCommand(assignSiteToAppPoolCommandArguments);
 
             // TODO: Should do more checks on the results. Sometimes 0 exitcode is returned even in case of an error and also sometimes errors are written to stdout instead of stderr.
@@ -69,19 +82,36 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
 
             if (httpsPort != Port.None)
             {
-                var emptyAppId = "00000000000000000000000000000000";
-                var httpsPortString = httpsPort.ToString();
+                var appId = GenerateAppId(httpsPort);
 
-                var appId = Guid.Parse(new string(emptyAppId.Take(emptyAppId.Length - httpsPortString.Length).ToArray()) + httpsPortString);
+                // Note: when running this from PowerShell, appid must be surrounded by 's: appid='{value}'
+                var bindCertToSiteCommandArguments = $"http add sslcert ipport=0.0.0.0:{httpsPort} certhash={certificateThumbprint} appid={{{appId}}}";
 
-                var bindCertToSiteCommandArguments = $"http add sslcert ipport=0.0.0.0:{httpsPort} certhash={certificateThumbprint} appid='{{{appId}}}'";
-
+                var unbindCertFromSiteCommandResult = UnbindCertificateFromSite(httpsPort);
                 var bindCertToSiteCommandResult = ExecuteNetShCommand(bindCertToSiteCommandArguments);
 
+                result.AddRange(unbindCertFromSiteCommandResult.Output);
                 result.AddRange(bindCertToSiteCommandResult.Output);
             }
 
             return new CommandLineProcessResult(0, result);
+        }
+
+        public CommandLineProcessResult UnbindCertificateFromSite(Port httpsPort)
+        {
+            try
+            {
+                return ExecuteNetShCommand($"http delete sslcert ipport=0.0.0.0:{httpsPort}");
+            }
+            catch (NetShException e) when (e.ExitCode == 1)
+            {
+                if (e.ErrorOutput.Any(x => string.Equals(x.Text, "The system cannot find the file specified.", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return new CommandLineProcessResult(0, ConsoleOutput.FromSingleOutputLine($"No certificate is configured for port {httpsPort}, skipping removal."));
+                }
+
+                throw;
+            }
         }
 
         public CommandLineProcessResult Delete(string siteName)
@@ -111,7 +141,7 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
             return ExecuteAppCmdCommand(arguments);
         }
 
-        // TODO: Refactpr apppool operations (either keep here or at ApplicationPoolManagementService)
+        // TODO: Refactor apppool operations (either keep here or at ApplicationPoolManagementService)
         public CommandLineProcessResult StartAppPool(string appPoolName)
         {
             var arguments = $"start apppool {appPoolName}";
@@ -128,6 +158,11 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
 
         public CommandLineProcessResult CreateAppPool(string appPoolName)
         {
+            if (AppPoolExists(appPoolName))
+            {
+                return CommandLineProcessResult.Empty;
+            }
+
             var arguments = $"add apppool /name:{appPoolName}";
 
             return ExecuteAppCmdCommand(arguments);
@@ -140,7 +175,102 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
             return ExecuteAppCmdCommand(arguments);
         }
 
-        private void ValidateSiteName(string siteName)
+        public IReadOnlyList<AppPoolDescriptor> ListAppPools()
+        {
+            const string appPoolPrefix = "APPPOOL ";
+
+            var commandResult = ExecuteAppCmdCommand(AppCmdListAppPoolsCommandArgument);
+
+            var result = new List<AppPoolDescriptor>();
+            for (var i = 0; i < commandResult.Output.Count; ++i)
+            {
+                var outputLine = commandResult.Output[i];
+                var text = outputLine.Text;
+
+                if (outputLine.IsError || !text.StartsWith(appPoolPrefix))
+                {
+                    continue;
+                }
+
+                // appPoolPrefix.Length + 1: +1 because the name is contained between "s
+                var appPoolName = new string(text.Skip(appPoolPrefix.Length + 1).TakeWhile(ch => ch != '"').ToArray());
+                var state = AppPoolState.Unknown;
+
+                if (text.Contains("state:Stopped"))
+                {
+                    state = AppPoolState.Stopped;
+                }
+                else if (text.Contains("state:Started"))
+                {
+                    state = AppPoolState.Started;
+                }
+
+                result.Add(new AppPoolDescriptor(appPoolName, state));
+            }
+
+            return result;
+        }
+
+        public IReadOnlyList<SiteDescriptor> ListSites()
+        {
+            const string sitePrefix = "SITE ";
+
+            var commandResult = ExecuteAppCmdCommand(AppCmdListSitesCommandArgument);
+
+            var result = new List<SiteDescriptor>();
+            for (var i = 0; i < commandResult.Output.Count; ++i)
+            {
+                var outputLine = commandResult.Output[i];
+                var text = outputLine.Text;
+
+                if (outputLine.IsError || !text.StartsWith(sitePrefix))
+                {
+                    continue;
+                }
+
+                // sitePrefix.Length + 1: +1 because the name is contained between "s
+                var siteName = new string(text.Skip(sitePrefix.Length + 1).TakeWhile(ch => ch != '"').ToArray());
+                var state = SiteState.Unknown;
+
+                if (text.Contains("state:Stopped"))
+                {
+                    state = SiteState.Stopped;
+                }
+                else if (text.Contains("state:Started"))
+                {
+                    state = SiteState.Started;
+                }
+
+                result.Add(new SiteDescriptor(siteName, state));
+            }
+
+            return result;
+        }
+
+        private bool AppPoolExists(string appPoolName)
+        {
+            var appPools = ListAppPools();
+
+            return appPools.Any(x => string.Equals(x.Name, appPoolName, StringComparison.Ordinal));
+        }
+
+        private bool SiteExists(string siteName)
+        {
+            var sites = ListSites();
+
+            return sites.Any(x => string.Equals(x.Name, siteName, StringComparison.Ordinal));
+        }
+
+        private static string GenerateAppId(Port httpsPort)
+        {
+            var httpsPortString = httpsPort.ToString();
+
+            var zeroes = new string(EmptyAppId.Take(EmptyAppId.Length - httpsPortString.Length).ToArray());
+
+            return Guid.Parse(zeroes + httpsPortString).ToString();
+        }
+
+        private static void ValidateSiteName(string siteName)
         {
             if (!IsValidSiteName(siteName))
             {
@@ -148,7 +278,7 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
             }
         }
 
-        private bool IsValidSiteName(string siteName)
+        private static bool IsValidSiteName(string siteName)
         {
             if (string.IsNullOrEmpty(siteName))
             {

@@ -4,6 +4,13 @@ namespace AspNetCoreIISDeployer.Application.Services
 {
     public class CommandLineProcessResult
     {
+        public static readonly CommandLineProcessResult Empty = new CommandLineProcessResult(0, new List<ConsoleOutput>());
+
+        public CommandLineProcessResult(int exitCode, ConsoleOutput output)
+            : this(exitCode, new List<ConsoleOutput> { output })
+        {
+        }
+
         public CommandLineProcessResult(int exitCode, IReadOnlyList<ConsoleOutput> output)
         {
             ExitCode = exitCode;
