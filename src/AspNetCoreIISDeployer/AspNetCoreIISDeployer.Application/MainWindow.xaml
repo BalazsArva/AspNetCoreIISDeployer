@@ -26,8 +26,33 @@
                                     <Run Foreground="#333333" Text="{Binding Path=AppModel.SiteName}" ToolTip="Site name"></Run>
                                 </TextBlock>
 
-                                <TextBlock Margin="3">http://localhost:<Run Text="{Binding Path=AppModel.HttpPort}"></Run></TextBlock>
-                                <TextBlock Margin="3">https://localhost:<Run Text="{Binding Path=AppModel.HttpsPort}"></Run></TextBlock>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Margin="3">http://localhost:<Run Text="{Binding Path=AppModel.HttpPort}" /></TextBlock>
+                                        <TextBlock Margin="3">https://localhost:<Run Text="{Binding Path=AppModel.HttpsPort}" /></TextBlock>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Margin="3">
+                                            <Run FontWeight="SemiBold">Deployed commit: </Run>
+                                            <Run>NYI</Run>
+                                        </TextBlock>
+                                        <TextBlock Margin="3">
+                                            <Run FontWeight="SemiBold">Publish path: </Run>
+                                            <Run Text="{Binding Path=AppModel.PublishPath}" />
+                                        </TextBlock>
+                                        <TextBlock Margin="3">
+                                            <Run FontWeight="SemiBold">Project path: </Run>
+                                            <Run Text="{Binding Path=AppModel.ProjectPath}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+
+                                
 
                                 <StackPanel Orientation="Horizontal">
 
