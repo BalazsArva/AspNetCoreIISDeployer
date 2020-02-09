@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using AspNetCoreIISDeployer.Application.Models;
 using AspNetCoreIISDeployer.Application.Services.DotNet;
@@ -16,6 +17,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
         private readonly IDotNetPublishService publishService;
         private readonly ISiteManagementService siteManagementService;
+
+        private bool enableManagement = true;
 
         public AppViewModel(IDotNetPublishService publishService, ISiteManagementService siteManagementService, AppModel appModel)
         {
@@ -43,30 +46,81 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
         public AppModel AppModel { get; }
 
+        public bool EnableManagement
+        {
+            get { return enableManagement; }
+            set
+            {
+                if (enableManagement != value)
+                {
+                    enableManagement = value;
+
+                    NotifyPropertyChanged(nameof(EnableManagement));
+                }
+            }
+        }
+
         private void PublishApp(object _)
         {
-            publishService.Publish(AppModel.ProjectPath, AppModel.BuildConfiguration, AppModel.PublishPath, AppModel.Environment);
+            BackgroundInvokeManagementCommand(() =>
+            {
+                publishService.Publish(AppModel.ProjectPath, AppModel.BuildConfiguration, AppModel.PublishPath, AppModel.Environment);
+            });
         }
 
         private void StopSite(object _)
         {
-            siteManagementService.Stop(AppModel.SiteName);
+            BackgroundInvokeManagementCommand(() =>
+            {
+                siteManagementService.Stop(AppModel.SiteName);
+            });
         }
 
         private void StartSite(object _)
         {
-            siteManagementService.Start(AppModel.SiteName);
+            BackgroundInvokeManagementCommand(() =>
+            {
+                siteManagementService.Start(AppModel.SiteName);
+            });
         }
 
         private void RestartSite(object _)
         {
-            siteManagementService.Stop(AppModel.SiteName);
-            siteManagementService.Start(AppModel.SiteName);
+            BackgroundInvokeManagementCommand(() =>
+            {
+                siteManagementService.Stop(AppModel.SiteName);
+                siteManagementService.Start(AppModel.SiteName);
+            });
         }
 
         private void CreateSite(object _)
         {
-            siteManagementService.Create(AppModel.AppPoolName, AppModel.SiteName, AppModel.HttpPort, AppModel.HttpsPort, AppModel.CertificateThumbprint, AppModel.PublishPath);
+            BackgroundInvokeManagementCommand(() =>
+            {
+                siteManagementService.Create(AppModel.AppPoolName, AppModel.SiteName, AppModel.HttpPort, AppModel.HttpsPort, AppModel.CertificateThumbprint, AppModel.PublishPath);
+            });
+        }
+
+        private async void BackgroundInvokeManagementCommand(Action command)
+        {
+            // TODO: Display output somewhere
+            try
+            {
+                EnableManagement = false;
+
+                await Task.Run(() =>
+                {
+                    command();
+                });
+            }
+            catch
+            {
+                // TODO: Show eror
+            }
+            finally
+            {
+                EnableManagement = true;
+            }
         }
     }
 }

@@ -12,7 +12,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Border DataContext="{Binding AppList}">
+        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" DataContext="{Binding AppList}">
             <ItemsControl ItemsSource="{Binding Apps}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -21,9 +21,9 @@
                             <StackPanel>
 
                                 <TextBlock Margin="3" FontSize="18" FontWeight="SemiBold">
-                                    <Run Foreground="#999999" Text="{Binding Path=AppModel.AppPoolName}"></Run>
+                                    <Run Foreground="#999999" Text="{Binding Path=AppModel.AppPoolName}" ToolTip="Application pool name"></Run>
                                     <Run Foreground="#999999"> / </Run>
-                                    <Run Foreground="#333333" Text="{Binding Path=AppModel.SiteName}"></Run>
+                                    <Run Foreground="#333333" Text="{Binding Path=AppModel.SiteName}" ToolTip="Site name"></Run>
                                 </TextBlock>
 
                                 <TextBlock Margin="3">http://localhost:<Run Text="{Binding Path=AppModel.HttpPort}"></Run></TextBlock>
@@ -31,15 +31,15 @@
 
                                 <StackPanel Orientation="Horizontal">
 
-                                    <Button Margin="3" Padding="3" Command="{Binding CreateSiteCommand}">Create</Button>
+                                    <Button Margin="3" Padding="3" Command="{Binding CreateSiteCommand}" IsEnabled="{Binding EnableManagement}">Create</Button>
                                     <Button Margin="3" Padding="3" IsEnabled="False">Delete</Button>
                                     <Button Margin="3" Padding="3" IsEnabled="False">Configure</Button>
                                     <Button Margin="3" Padding="3" IsEnabled="False">Open folder</Button>
                                     <Button Margin="3" Padding="3" IsEnabled="False">Fetch</Button>
-                                    <Button Margin="3" Padding="3" Command="{Binding PublishAppCommand}">Build &amp; publish</Button>
-                                    <Button Margin="3" Padding="3" Command="{Binding StartSiteCommand}">Start</Button>
-                                    <Button Margin="3" Padding="3" Command="{Binding StopSiteCommand}">Stop</Button>
-                                    <Button Margin="3" Padding="3" Command="{Binding RestartSiteCommand}">Restart</Button>
+                                    <Button Margin="3" Padding="3" Command="{Binding PublishAppCommand}" IsEnabled="{Binding EnableManagement}">Build &amp; publish</Button>
+                                    <Button Margin="3" Padding="3" Command="{Binding StartSiteCommand}" IsEnabled="{Binding EnableManagement}">Start</Button>
+                                    <Button Margin="3" Padding="3" Command="{Binding StopSiteCommand}" IsEnabled="{Binding EnableManagement}">Stop</Button>
+                                    <Button Margin="3" Padding="3" Command="{Binding RestartSiteCommand}" IsEnabled="{Binding EnableManagement}">Restart</Button>
                                     <Button Margin="3" Padding="3" IsEnabled="False">Open site</Button>
                                 </StackPanel>
                             </StackPanel>
@@ -47,6 +47,6 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-        </Border>
+        </ScrollViewer>
     </Grid>
 </Window>
