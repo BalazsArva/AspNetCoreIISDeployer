@@ -1,4 +1,5 @@
-﻿using AspNetCoreIISDeployer.Application.Configuration;
+﻿using System.Security.Principal;
+using AspNetCoreIISDeployer.Application.Configuration;
 using AspNetCoreIISDeployer.Application.Services.DotNet;
 using AspNetCoreIISDeployer.Application.Services.Git;
 using AspNetCoreIISDeployer.Application.Services.IIS;
@@ -34,6 +35,16 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
                 appList = value;
                 NotifyPropertyChanged(nameof(AppList));
+            }
+        }
+
+        public string UserMode
+        {
+            get
+            {
+                return System.Security.Principal.WindowsIdentity.GetCurrent().Owner.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid)
+                    ? "Admin"
+                    : "Normal user";
             }
         }
     }

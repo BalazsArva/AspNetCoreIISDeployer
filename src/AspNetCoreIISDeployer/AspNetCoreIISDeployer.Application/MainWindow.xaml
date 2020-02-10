@@ -7,12 +7,33 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="768" Width="1024">
     <DockPanel LastChildFill="True">
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Import" />
+                <MenuItem Header="_Export" />
+                <Separator />
+                <MenuItem Header="E_xit" />
+            </MenuItem>
+            <MenuItem Header="_Settings">
+                <MenuItem Header="_Preferences" />
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About" />
+            </MenuItem>
+        </Menu>
+
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
             <Button Margin="3" Padding="3">Install ASP.NET Core HTTPS Development Certificate (NYI)</Button>
             <Button Margin="3" Padding="3">Check certificate validity (NYI)</Button>
             <Button Margin="3" Padding="3">Install IIS (NYI)</Button>
             <Button Margin="3" Padding="3">Install ASP.NET Core IIS hosting bundle (NYI)</Button>
         </StackPanel>
+
+        <StatusBar DockPanel.Dock="Bottom" FlowDirection="RightToLeft">
+            <StatusBarItem>
+                <Label Content="{Binding UserMode}" />
+            </StatusBarItem>
+        </StatusBar>
 
         <Grid DockPanel.Dock="Bottom">
             <Grid.ColumnDefinitions>
