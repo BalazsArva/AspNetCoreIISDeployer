@@ -1,9 +1,4 @@
 ﻿using System.Security.Principal;
-using AspNetCoreIISDeployer.Application.Configuration;
-using AspNetCoreIISDeployer.Application.Services.ApplicationServices;
-using AspNetCoreIISDeployer.Application.Services.DotNet;
-using AspNetCoreIISDeployer.Application.Services.Git;
-using AspNetCoreIISDeployer.Application.Services.IIS;
 using AspNetCoreIISDeployer.Application.ViewModels.Factories;
 
 namespace AspNetCoreIISDeployer.Application.ViewModels
@@ -12,20 +7,9 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
     {
         private AppListViewModel appList;
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(IAppListViewModelFactory appListViewModelFactory)
         {
-            var dotNetConfig = new DotNetConfiguration();
-            var iisConfig = new IISMangementConfiguration();
-            var gitConfig = new GitConfiguration();
-
-            IGitService gitService = new GitService(gitConfig);
-            IDotNetPublishService publishService = new DotNetPublishService(dotNetConfig, gitService);
-            ISiteManagementService siteManagementService = new SiteManagementService(iisConfig);
-            IAppService appService = new AppService();
-
-            IAppViewModelFactory appViewModelFactory = new AppViewModelFactory(publishService, siteManagementService, gitService);
-
-            AppList = new AppListViewModel(appViewModelFactory, appService);
+            AppList = appListViewModelFactory.Create();
         }
 
         public AppListViewModel AppList

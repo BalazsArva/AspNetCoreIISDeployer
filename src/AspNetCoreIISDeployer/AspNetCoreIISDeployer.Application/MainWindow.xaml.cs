@@ -3,14 +3,11 @@ using AspNetCoreIISDeployer.Application.ViewModels;
 
 namespace AspNetCoreIISDeployer.Application
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow(MainWindowViewModel viewModel)
         {
-            DataContext = new MainWindowViewModel();
+            DataContext = viewModel;
 
             InitializeComponent();
         }
