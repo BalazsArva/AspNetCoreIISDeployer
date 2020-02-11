@@ -18,11 +18,14 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         private readonly DelegateCommand createSiteCommand;
         private readonly DelegateCommand updateRepositoryInfoCommand;
 
+        private readonly DelegateCommand fetchCommand;
+
         private readonly IDotNetPublishService publishService;
         private readonly ISiteManagementService siteManagementService;
         private readonly IGitService gitService;
 
-        private bool enableManagement = true;
+        private bool enableSiteManagement = true;
+        private bool enableRepositoryManagement = true;
 
         private PublishInfoViewModel publishInfo = new PublishInfoViewModel();
         private RepositoryInfoViewModel repositoryInfo = new RepositoryInfoViewModel();
@@ -35,6 +38,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             restartSiteCommand = new DelegateCommand(RestartSite);
             createSiteCommand = new DelegateCommand(CreateSite);
             updateRepositoryInfoCommand = new DelegateCommand(_ => UpdateRepositoryInfo());
+
+            fetchCommand = new DelegateCommand(FetchRepository);
 
             this.publishService = publishService ?? throw new ArgumentNullException(nameof(publishService));
             this.siteManagementService = siteManagementService ?? throw new ArgumentNullException(nameof(siteManagementService));
@@ -57,6 +62,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         public ICommand CreateSiteCommand => createSiteCommand;
 
         public ICommand UpdateRepositoryInfoCommand => updateRepositoryInfoCommand;
+
+        public ICommand FetchCommand => fetchCommand;
 
         public AppModel AppModel { get; }
 
@@ -88,16 +95,30 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             }
         }
 
-        public bool EnableManagement
+        public bool EnableSiteManagement
         {
-            get { return enableManagement; }
+            get { return enableSiteManagement; }
             set
             {
-                if (enableManagement != value)
+                if (enableSiteManagement != value)
                 {
-                    enableManagement = value;
+                    enableSiteManagement = value;
 
-                    NotifyPropertyChanged(nameof(EnableManagement));
+                    NotifyPropertyChanged(nameof(EnableSiteManagement));
+                }
+            }
+        } 
+        
+        public bool EnableRepositoryManagement
+        {
+            get { return enableRepositoryManagement; }
+            set
+            {
+                if (enableRepositoryManagement != value)
+                {
+                    enableRepositoryManagement = value;
+
+                    NotifyPropertyChanged(nameof(EnableRepositoryManagement));
                 }
             }
         }
@@ -151,12 +172,22 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             });
         }
 
+        private void FetchRepository(object _)
+        {
+            BackgroundInvokeRepositoryCommand(() =>
+            {
+                var projectDirectory = Path.GetDirectoryName(AppModel.ProjectPath);
+
+                gitService.Fetch(projectDirectory, true, true);
+            });
+        }
+
         private async void BackgroundInvokeManagementCommand(Action command)
         {
             // TODO: Display output somewhere
             try
             {
-                EnableManagement = false;
+                EnableSiteManagement = false;
 
                 await Task.Run(() =>
                 {
@@ -169,7 +200,29 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             }
             finally
             {
-                EnableManagement = true;
+                EnableSiteManagement = true;
+            }
+        }
+
+        private async void BackgroundInvokeRepositoryCommand(Action command)
+        {
+            // TODO: Display output somewhere
+            try
+            {
+                EnableRepositoryManagement = false;
+
+                await Task.Run(() =>
+                {
+                    command();
+                });
+            }
+            catch
+            {
+                // TODO: Show eror
+            }
+            finally
+            {
+                EnableRepositoryManagement = true;
             }
         }
 
