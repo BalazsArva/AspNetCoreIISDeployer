@@ -45,109 +45,136 @@
                 <ItemsControl ItemsSource="{Binding Apps}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Margin="3" Padding="3" BorderThickness="1" BorderBrush="#0099af">
+                            <Border Margin="3" BorderThickness="1" BorderBrush="#0099af">
 
                                 <StackPanel>
 
-                                    <TextBlock Margin="3" FontSize="18" FontWeight="SemiBold">
-                                        <Run Foreground="#999999" Text="{Binding Path=AppModel.AppPoolName}" ToolTip="Application pool name"></Run>
-                                        <Run Foreground="#999999"> / </Run>
-                                        <Run Foreground="#333333" Text="{Binding Path=AppModel.SiteName}" ToolTip="Site name"></Run>
-                                    </TextBlock>
+                                    <Border Background="#f9f9f9" Padding="3">
+                                        <TextBlock Margin="3" FontSize="18" FontWeight="SemiBold">
+                                            <Run Foreground="#999999" Text="{Binding Path=AppModel.AppPoolName}" ToolTip="Application pool name"></Run>
+                                            <Run Foreground="#999999"> / </Run>
+                                            <Run Foreground="#333333" Text="{Binding Path=AppModel.SiteName}" ToolTip="Site name"></Run>
+                                        </TextBlock>
+                                    </Border>
 
-                                    <Grid Margin="0,10,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
+                                    <Border Padding="3">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                <GradientStop Color="#f9f9f9" />
+                                                <GradientStop Color="#ffffff" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                        <Grid Margin="0,10,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
 
-                                        <StackPanel Grid.Column="0" Margin="0,0,50,0">
-                                            <TextBlock Margin="3">http://localhost:<Run Text="{Binding Path=AppModel.HttpPort}" /></TextBlock>
-                                            <TextBlock Margin="3">https://localhost:<Run Text="{Binding Path=AppModel.HttpsPort}" /></TextBlock>
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Certificate hash (NYI): </Run>
-                                                <Run>NYI</Run>
-                                            </TextBlock>
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Certificate added to user's store: </Run>
-                                                <Run Background="Green" Foreground="White"> NYI </Run>
-                                            </TextBlock>
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Certificate added to machine store: </Run>
-                                                <Run Background="OrangeRed" Foreground="White"> NYI </Run>
-                                            </TextBlock>
+                                            <StackPanel Grid.Column="0" Margin="0,0,50,0">
+                                                <TextBlock Margin="3" FontWeight="SemiBold" FontSize="14">
+                                                    General info
+                                                </TextBlock>
+                                                <Separator Margin="3" />
+                                                
+                                                <TextBlock Margin="3">http://localhost:<Run Text="{Binding Path=AppModel.HttpPort}" /></TextBlock>
+                                                <TextBlock Margin="3">https://localhost:<Run Text="{Binding Path=AppModel.HttpsPort}" /></TextBlock>
+                                                <TextBlock Margin="3">
+                                                    <Run FontWeight="SemiBold">Certificate added to user's store: </Run>
+                                                    <Run Background="Green" Foreground="White"> NYI </Run>
+                                                </TextBlock>
+                                                <TextBlock Margin="3">
+                                                    <Run FontWeight="SemiBold">Certificate added to machine store: </Run>
+                                                    <Run Background="OrangeRed" Foreground="White"> NYI </Run>
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1" Margin="0,0,50,0">
+                                                <TextBlock Margin="3" FontWeight="SemiBold" FontSize="14">
+                                                    Published app details
+                                                </TextBlock>
+                                                <Separator Margin="3" />
+                                                
+                                                <TextBlock Margin="3">
+                                                    <Run FontWeight="SemiBold">Publish path: </Run>
+                                                    <Run Text="{Binding Path=AppModel.PublishPath}" />
+                                                </TextBlock>
+                                                <TextBlock Margin="3">
+                                                    <Run FontWeight="SemiBold">Deployed branch: </Run>
+                                                    <Run Text="{Binding Path=PublishInfo.Branch, Mode=OneWay}" />
+                                                </TextBlock>
+                                                <TextBlock Margin="3">
+                                                    <Run FontWeight="SemiBold">Deployed commit: </Run>
+                                                    <Run Text="{Binding Path=PublishInfo.Commit, Mode=OneWay}" />
+                                                </TextBlock>
+                                                <TextBlock Margin="3">
+                                                    <Run FontWeight="SemiBold">Environment (NYI): </Run>
+                                                    <Run>NYI</Run>
+                                                </TextBlock>
+                                                <TextBlock Margin="3">
+                                                    <Run FontWeight="SemiBold">Certificate hash (NYI): </Run>
+                                                    <Run>NYI</Run>
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" Margin="0,0,50,0">
+                                                <TextBlock Margin="3" FontWeight="SemiBold" FontSize="14">
+                                                    Repository details
+                                                </TextBlock>
+                                                <Separator Margin="3" />
+                                                
+                                                <TextBlock Margin="3">
+                                                    <Run FontWeight="SemiBold">Project path: </Run>
+                                                    <Run Text="{Binding Path=AppModel.ProjectPath}" />
+                                                </TextBlock>
+                                                <TextBlock Margin="3">
+                                                    <Run FontWeight="SemiBold">Checked-out branch in project repository: </Run>
+                                                    <Run Text="{Binding Path=RepositoryInfo.Branch, Mode=OneWay}" />
+                                                </TextBlock>
+                                                <TextBlock Margin="3">
+                                                    <Run FontWeight="SemiBold">Current commit in project repository: </Run>
+                                                    <Run Text="{Binding Path=RepositoryInfo.Commit, Mode=OneWay}" />
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <Border Background="#ffffff" Padding="3">
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <GroupBox Header="Entry configuration" Padding="5">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Margin="3" Padding="3" IsEnabled="False">Configure</Button>
+                                                </StackPanel>
+                                            </GroupBox>
+
+                                            <GroupBox Header="App management" Padding="5">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Margin="3" Padding="3" Command="{Binding CreateSiteCommand}" IsEnabled="{Binding EnableSiteManagement}">Create</Button>
+                                                    <Button Margin="3" Padding="3" IsEnabled="False">Delete</Button>
+                                                    <Button Margin="3" Padding="3" Command="{Binding PublishAppCommand}" IsEnabled="{Binding EnableSiteManagement}">Build &amp; publish</Button>
+                                                    <Button Margin="3" Padding="3" Command="{Binding StartSiteCommand}" IsEnabled="{Binding EnableSiteManagement}">Start</Button>
+                                                    <Button Margin="3" Padding="3" Command="{Binding StopSiteCommand}" IsEnabled="{Binding EnableSiteManagement}">Stop</Button>
+                                                    <Button Margin="3" Padding="3" Command="{Binding RestartSiteCommand}" IsEnabled="{Binding EnableSiteManagement}">Restart</Button>
+                                                </StackPanel>
+                                            </GroupBox>
+
+                                            <GroupBox Header="Explore" Padding="5">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Margin="3" Padding="3" IsEnabled="False">Open publish folder</Button>
+                                                    <Button Margin="3" Padding="3" IsEnabled="False">Open project folder</Button>
+                                                    <Button Margin="3" Padding="3" IsEnabled="False">Open site</Button>
+                                                </StackPanel>
+                                            </GroupBox>
+
+                                            <GroupBox Header="Repository management" Padding="5">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Margin="3" Padding="3" Command="{Binding UpdateRepositoryInfoCommand}">Update repository information</Button>
+                                                    <Button Margin="3" Padding="3" Command="{Binding FetchCommand}" IsEnabled="{Binding EnableRepositoryManagement}">Fetch</Button>
+                                                    <Button Margin="3" Padding="3" IsEnabled="False">Start periodic fetch (NYI)</Button>
+                                                </StackPanel>
+                                            </GroupBox>
                                         </StackPanel>
-
-                                        <StackPanel Grid.Column="1" Margin="0,0,50,0">
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Publish path: </Run>
-                                                <Run Text="{Binding Path=AppModel.PublishPath}" />
-                                            </TextBlock>
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Deployed branch: </Run>
-                                                <Run Text="{Binding Path=PublishInfo.Branch, Mode=OneWay}" />
-                                            </TextBlock>
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Deployed commit: </Run>
-                                                <Run Text="{Binding Path=PublishInfo.Commit, Mode=OneWay}" />
-                                            </TextBlock>
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Environment (NYI): </Run>
-                                                <Run>NYI</Run>
-                                            </TextBlock>
-                                        </StackPanel>
-
-                                        <StackPanel Grid.Column="2" Margin="0,0,50,0">
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Project path: </Run>
-                                                <Run Text="{Binding Path=AppModel.ProjectPath}" />
-                                            </TextBlock>
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Checked-out branch in project repository: </Run>
-                                                <Run Text="{Binding Path=RepositoryInfo.Branch, Mode=OneWay}" />
-                                            </TextBlock>
-                                            <TextBlock Margin="3">
-                                                <Run FontWeight="SemiBold">Current commit in project repository: </Run>
-                                                <Run Text="{Binding Path=RepositoryInfo.Commit, Mode=OneWay}" />
-                                            </TextBlock>
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                        <GroupBox Header="Entry configuration" Padding="5">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Button Margin="3" Padding="3" IsEnabled="False">Configure</Button>
-                                                <CheckBox VerticalAlignment="Center" Margin="3" Content="Periodic fetch (NYI)" IsEnabled="False" />
-                                            </StackPanel>
-                                        </GroupBox>
-
-                                        <GroupBox Header="App management" Padding="5">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Button Margin="3" Padding="3" Command="{Binding CreateSiteCommand}" IsEnabled="{Binding EnableSiteManagement}">Create</Button>
-                                                <Button Margin="3" Padding="3" IsEnabled="False">Delete</Button>
-                                                <Button Margin="3" Padding="3" Command="{Binding PublishAppCommand}" IsEnabled="{Binding EnableSiteManagement}">Build &amp; publish</Button>
-                                                <Button Margin="3" Padding="3" Command="{Binding StartSiteCommand}" IsEnabled="{Binding EnableSiteManagement}">Start</Button>
-                                                <Button Margin="3" Padding="3" Command="{Binding StopSiteCommand}" IsEnabled="{Binding EnableSiteManagement}">Stop</Button>
-                                                <Button Margin="3" Padding="3" Command="{Binding RestartSiteCommand}" IsEnabled="{Binding EnableSiteManagement}">Restart</Button>
-                                            </StackPanel>
-                                        </GroupBox>
-
-                                        <GroupBox Header="Explore" Padding="5">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Button Margin="3" Padding="3" IsEnabled="False">Open publish folder</Button>
-                                                <Button Margin="3" Padding="3" IsEnabled="False">Open project folder</Button>
-                                                <Button Margin="3" Padding="3" IsEnabled="False">Open site</Button>
-                                            </StackPanel>
-                                        </GroupBox>
-
-                                        <GroupBox Header="Repository management" Padding="5">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Button Margin="3" Padding="3" Command="{Binding UpdateRepositoryInfoCommand}">Update repository information</Button>
-                                                <Button Margin="3" Padding="3" Command="{Binding FetchCommand}" IsEnabled="{Binding EnableRepositoryManagement}">Fetch</Button>
-                                            </StackPanel>
-                                        </GroupBox>
-                                    </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
