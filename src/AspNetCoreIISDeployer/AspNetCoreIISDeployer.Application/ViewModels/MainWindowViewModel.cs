@@ -1,5 +1,6 @@
 ﻿using System.Security.Principal;
 using AspNetCoreIISDeployer.Application.Configuration;
+using AspNetCoreIISDeployer.Application.Services.ApplicationServices;
 using AspNetCoreIISDeployer.Application.Services.DotNet;
 using AspNetCoreIISDeployer.Application.Services.Git;
 using AspNetCoreIISDeployer.Application.Services.IIS;
@@ -19,8 +20,9 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             IGitService gitService = new GitService(gitConfig);
             IDotNetPublishService publishService = new DotNetPublishService(dotNetConfig, gitService);
             ISiteManagementService siteManagementService = new SiteManagementService(iisConfig);
+            IAppService appService = new AppService();
 
-            AppList = new AppListViewModel(publishService, siteManagementService, gitService);
+            AppList = new AppListViewModel(publishService, siteManagementService, gitService, appService);
         }
 
         public AppListViewModel AppList

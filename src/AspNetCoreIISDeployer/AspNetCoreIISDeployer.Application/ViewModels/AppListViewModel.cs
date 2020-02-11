@@ -1,5 +1,6 @@
-﻿using System.Collections.ObjectModel;
-using AspNetCoreIISDeployer.Application.Models;
+﻿using System;
+using System.Collections.ObjectModel;
+using AspNetCoreIISDeployer.Application.Services.ApplicationServices;
 using AspNetCoreIISDeployer.Application.Services.DotNet;
 using AspNetCoreIISDeployer.Application.Services.Git;
 using AspNetCoreIISDeployer.Application.Services.IIS;
@@ -8,61 +9,21 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 {
     public class AppListViewModel : ViewModelBase
     {
-        private ObservableCollection<AppViewModel> apps;
+        private readonly IDotNetPublishService publishService;
+        private readonly ISiteManagementService siteManagementService;
+        private readonly IGitService gitService;
+        private readonly IAppService appService;
 
-        public AppListViewModel(IDotNetPublishService publishService, ISiteManagementService siteManagementService, IGitService gitService)
+        private ObservableCollection<AppViewModel> apps = new ObservableCollection<AppViewModel>();
+
+        public AppListViewModel(IDotNetPublishService publishService, ISiteManagementService siteManagementService, IGitService gitService, IAppService appService)
         {
-            Apps = new ObservableCollection<AppViewModel>(new[]
-            {
-                new AppViewModel(
-                    publishService,
-                    siteManagementService,
-                    gitService,
-                    new AppModel
-                    {
-                        ProjectPath = @"F:\Dev\LearningOpenIdConnect\Oidc.IdentityProvider\Oidc.IdentityProvider\Oidc.IdentityProvider.Api\Oidc.IdentityProvider.Api.csproj",
-                        AppPoolName = "identity-provider-api1",
-                        SiteName = "identity-provider-api1",
-                        BuildConfiguration = "Debug",
-                        Environment = "Development",
-                        HttpPort = 8011,
-                        HttpsPort = 44311,
-                        CertificateThumbprint = "7288558f67603405132b4f9328c155719d40f08e",
-                        PublishPath = @"C:\Temp\Oidc.Idp\Publish1"
-                    }),
-                new AppViewModel(
-                    publishService,
-                    siteManagementService,
-                    gitService,
-                    new AppModel
-                    {
-                        ProjectPath = @"F:\Dev\LearningOpenIdConnect\Oidc.IdentityProvider\Oidc.IdentityProvider\Oidc.IdentityProvider.Api\Oidc.IdentityProvider.Api.csproj",
-                        AppPoolName = "identity-provider-api2",
-                        SiteName = "identity-provider-api2",
-                        BuildConfiguration = "Debug",
-                        Environment = "Development",
-                        HttpPort = 8012,
-                        HttpsPort = 44312,
-                        CertificateThumbprint = "7288558f67603405132b4f9328c155719d40f08e",
-                        PublishPath = @"C:\Temp\Oidc.Idp\Publish2"
-                    }),
-                new AppViewModel(
-                    publishService,
-                    siteManagementService,
-                    gitService,
-                    new AppModel
-                    {
-                        ProjectPath = @"F:\Dev\LearningOpenIdConnect\Oidc.IdentityProvider\Oidc.IdentityProvider\Oidc.IdentityProvider.Api\Oidc.IdentityProvider.Api.csproj",
-                        AppPoolName = "identity-provider-api3",
-                        SiteName = "identity-provider-api3",
-                        BuildConfiguration = "Debug",
-                        Environment = "Development",
-                        HttpPort = 8013,
-                        HttpsPort = 44313,
-                        CertificateThumbprint = "7288558f67603405132b4f9328c155719d40f08e",
-                        PublishPath = @"C:\Temp\Oidc.Idp\Publish3"
-                    }),
-            });
+            this.publishService = publishService ?? throw new ArgumentNullException(nameof(publishService));
+            this.siteManagementService = siteManagementService ?? throw new ArgumentNullException(nameof(siteManagementService));
+            this.gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
+            this.appService = appService ?? throw new ArgumentNullException(nameof(appService));
+
+            Initialize();
         }
 
         public ObservableCollection<AppViewModel> Apps
@@ -77,6 +38,24 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
                 apps = value;
                 NotifyPropertyChanged(nameof(Apps));
+            }
+        }
+
+        private async void Initialize()
+        {
+            try
+            {
+                // TODO: Move file names elsewhere
+                var configuredAppList = await appService.GetAppsAsync("globalconfig.json", "useroverrides.json");
+
+                foreach (var app in configuredAppList.Apps)
+                {
+                    Apps.Add(new AppViewModel(publishService, siteManagementService, gitService, app));
+                }
+            }
+            catch
+            {
+                // TODO: Display error
             }
         }
     }

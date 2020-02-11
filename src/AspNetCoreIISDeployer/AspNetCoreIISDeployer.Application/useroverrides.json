@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "projectPath": "F:\\Dev\\LearningOpenIdConnect\\Oidc.IdentityProvider\\Oidc.IdentityProvider\\Oidc.IdentityProvider.Api\\Oidc.IdentityProvider.Api.csproj",
+    "certificateThumbprint": "7288558f67603405132b4f9328c155719d40f08e",
+    "publishPath": "C:\\Temp\\Oidc.Idp\\Publish1"
+  },
+  {
+    "id": "2",
+    "projectPath": "F:\\Dev\\LearningOpenIdConnect\\Oidc.IdentityProvider\\Oidc.IdentityProvider\\Oidc.IdentityProvider.Api\\Oidc.IdentityProvider.Api.csproj",
+    "certificateThumbprint": "7288558f67603405132b4f9328c155719d40f08e",
+    "publishPath": "C:\\Temp\\Oidc.Idp\\Publish2"
+  },
+  {
+    "id": "3",
+    "projectPath": "F:\\Dev\\LearningOpenIdConnect\\Oidc.IdentityProvider\\Oidc.IdentityProvider\\Oidc.IdentityProvider.Api\\Oidc.IdentityProvider.Api.csproj",
+    "certificateThumbprint": "7288558f67603405132b4f9328c155719d40f08e",
+    "publishPath": "C:\\Temp\\Oidc.Idp\\Publish3"
+  },
+  {
+    "id": "4",
+    "projectPath": "F:\\Dev\\LearningOpenIdConnect\\Oidc.IdentityProvider\\Oidc.IdentityProvider\\Oidc.IdentityProvider.Api\\Oidc.IdentityProvider.Api.csproj",
+    "certificateThumbprint": "7288558f67603405132b4f9328c155719d40f08e",
+    "publishPath": "C:\\Temp\\Oidc.Idp\\Publish4"
+  },
+  {
+    "id": "5",
+    "projectPath": "F:\\Dev\\LearningOpenIdConnect\\Oidc.IdentityProvider\\Oidc.IdentityProvider\\Oidc.IdentityProvider.Api\\Oidc.IdentityProvider.Api.csproj",
+    "certificateThumbprint": "7288558f67603405132b4f9328c155719d40f08e",
+    "publishPath": "C:\\Temp\\Oidc.Idp\\Publish5"
+  }
+]
