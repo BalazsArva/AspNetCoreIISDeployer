@@ -1,0 +1,47 @@
+[
+  {
+    "id": "1",
+    "appPoolName": "identity-provider-api1",
+    "siteName": "identity-provider-api1",
+    "buildConfiguration": "Debug",
+    "environment": "Development",
+    "httpPort": 8011,
+    "httpsPort": 44311
+  },
+  {
+    "id": "2",
+    "appPoolName": "identity-provider-api2",
+    "siteName": "identity-provider-api2",
+    "buildConfiguration": "Debug",
+    "environment": "Development",
+    "httpPort": 8012,
+    "httpsPort": 44312
+  },
+  {
+    "id": "3",
+    "appPoolName": "identity-provider-api3",
+    "siteName": "identity-provider-api3",
+    "buildConfiguration": "Debug",
+    "environment": "Development",
+    "httpPort": 8013,
+    "httpsPort": 44313
+  },
+  {
+    "id": "4",
+    "appPoolName": "identity-provider-api4",
+    "siteName": "identity-provider-api4",
+    "buildConfiguration": "Debug",
+    "environment": "Development",
+    "httpPort": 8014,
+    "httpsPort": 44314
+  },
+  {
+    "id": "5",
+    "appPoolName": "identity-provider-api5",
+    "siteName": "identity-provider-api5",
+    "buildConfiguration": "Debug",
+    "environment": "Development",
+    "httpPort": 8015,
+    "httpsPort": 44315
+  }
+]

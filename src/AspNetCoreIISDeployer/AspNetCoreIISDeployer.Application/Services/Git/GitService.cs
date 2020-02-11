@@ -54,6 +54,16 @@ namespace AspNetCoreIISDeployer.Application.Services.Git
             throw new GitException($"Could not retrieve current branch from the specified repository at '{repositoryPath}'.", result.Output);
         }
 
+        public CommandLineProcessResult Fetch(string repositoryPath, bool all, bool prune)
+        {
+            var allArgument = all ? "--all" : string.Empty;
+            var pruneArgument = prune ? "--prune" : string.Empty;
+
+            var result = ExecuteCommandLineApplication(configuration.GitPath, $"fetch {allArgument} {pruneArgument}", repositoryPath);
+
+            return result;
+        }
+
         private static bool IsGitLongHashLike(string text)
         {
             return text.Length == 40 && text.All(ch =>

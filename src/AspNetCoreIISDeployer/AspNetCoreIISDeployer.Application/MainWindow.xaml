@@ -124,12 +124,12 @@
 
                                         <GroupBox Header="App management" Padding="5">
                                             <StackPanel Orientation="Horizontal">
-                                                <Button Margin="3" Padding="3" Command="{Binding CreateSiteCommand}" IsEnabled="{Binding EnableManagement}">Create</Button>
+                                                <Button Margin="3" Padding="3" Command="{Binding CreateSiteCommand}" IsEnabled="{Binding EnableSiteManagement}">Create</Button>
                                                 <Button Margin="3" Padding="3" IsEnabled="False">Delete</Button>
-                                                <Button Margin="3" Padding="3" Command="{Binding PublishAppCommand}" IsEnabled="{Binding EnableManagement}">Build &amp; publish</Button>
-                                                <Button Margin="3" Padding="3" Command="{Binding StartSiteCommand}" IsEnabled="{Binding EnableManagement}">Start</Button>
-                                                <Button Margin="3" Padding="3" Command="{Binding StopSiteCommand}" IsEnabled="{Binding EnableManagement}">Stop</Button>
-                                                <Button Margin="3" Padding="3" Command="{Binding RestartSiteCommand}" IsEnabled="{Binding EnableManagement}">Restart</Button>
+                                                <Button Margin="3" Padding="3" Command="{Binding PublishAppCommand}" IsEnabled="{Binding EnableSiteManagement}">Build &amp; publish</Button>
+                                                <Button Margin="3" Padding="3" Command="{Binding StartSiteCommand}" IsEnabled="{Binding EnableSiteManagement}">Start</Button>
+                                                <Button Margin="3" Padding="3" Command="{Binding StopSiteCommand}" IsEnabled="{Binding EnableSiteManagement}">Stop</Button>
+                                                <Button Margin="3" Padding="3" Command="{Binding RestartSiteCommand}" IsEnabled="{Binding EnableSiteManagement}">Restart</Button>
                                             </StackPanel>
                                         </GroupBox>
 
@@ -144,7 +144,7 @@
                                         <GroupBox Header="Repository management" Padding="5">
                                             <StackPanel Orientation="Horizontal">
                                                 <Button Margin="3" Padding="3" Command="{Binding UpdateRepositoryInfoCommand}">Update repository information</Button>
-                                                <Button Margin="3" Padding="3" IsEnabled="False">Fetch</Button>
+                                                <Button Margin="3" Padding="3" Command="{Binding FetchCommand}" IsEnabled="{Binding EnableRepositoryManagement}">Fetch</Button>
                                             </StackPanel>
                                         </GroupBox>
                                     </StackPanel>

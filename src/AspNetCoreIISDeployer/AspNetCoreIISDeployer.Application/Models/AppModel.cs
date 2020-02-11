@@ -2,6 +2,8 @@
 {
     public class AppModel
     {
+        public string Id { get; set; }
+
         public int HttpPort { get; set; }
 
         public int HttpsPort { get; set; }
