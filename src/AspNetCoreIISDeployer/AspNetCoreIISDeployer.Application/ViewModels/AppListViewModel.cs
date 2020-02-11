@@ -1,26 +1,20 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using AspNetCoreIISDeployer.Application.Services.ApplicationServices;
-using AspNetCoreIISDeployer.Application.Services.DotNet;
-using AspNetCoreIISDeployer.Application.Services.Git;
-using AspNetCoreIISDeployer.Application.Services.IIS;
+using AspNetCoreIISDeployer.Application.ViewModels.Factories;
 
 namespace AspNetCoreIISDeployer.Application.ViewModels
 {
     public class AppListViewModel : ViewModelBase
     {
-        private readonly IDotNetPublishService publishService;
-        private readonly ISiteManagementService siteManagementService;
-        private readonly IGitService gitService;
+        private readonly IAppViewModelFactory appViewModelFactory;
         private readonly IAppService appService;
 
         private ObservableCollection<AppViewModel> apps = new ObservableCollection<AppViewModel>();
 
-        public AppListViewModel(IDotNetPublishService publishService, ISiteManagementService siteManagementService, IGitService gitService, IAppService appService)
+        public AppListViewModel(IAppViewModelFactory appViewModelFactory, IAppService appService)
         {
-            this.publishService = publishService ?? throw new ArgumentNullException(nameof(publishService));
-            this.siteManagementService = siteManagementService ?? throw new ArgumentNullException(nameof(siteManagementService));
-            this.gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
+            this.appViewModelFactory = appViewModelFactory ?? throw new ArgumentNullException(nameof(appViewModelFactory));
             this.appService = appService ?? throw new ArgumentNullException(nameof(appService));
 
             Initialize();
@@ -50,7 +44,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
                 foreach (var app in configuredAppList.Apps)
                 {
-                    Apps.Add(new AppViewModel(publishService, siteManagementService, gitService, app));
+                    Apps.Add(appViewModelFactory.Create(app));
                 }
             }
             catch

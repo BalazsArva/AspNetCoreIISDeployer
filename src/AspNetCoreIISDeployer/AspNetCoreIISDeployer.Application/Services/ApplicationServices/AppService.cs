@@ -18,7 +18,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 
             var userOverrides = JArray.Parse(await File.ReadAllTextAsync(userOverridesFilePath));
 
-            // TODO: Error handling, missing Id, file not found, etc.
+            // TODO: Error handling, missing Id, file not found, multiple entries with same id, etc.
             foreach (var appUserConfig in userOverrides.OfType<JObject>())
             {
                 var appId = GetId(appUserConfig);

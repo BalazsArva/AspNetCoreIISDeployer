@@ -4,6 +4,7 @@ using AspNetCoreIISDeployer.Application.Services.ApplicationServices;
 using AspNetCoreIISDeployer.Application.Services.DotNet;
 using AspNetCoreIISDeployer.Application.Services.Git;
 using AspNetCoreIISDeployer.Application.Services.IIS;
+using AspNetCoreIISDeployer.Application.ViewModels.Factories;
 
 namespace AspNetCoreIISDeployer.Application.ViewModels
 {
@@ -22,7 +23,9 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             ISiteManagementService siteManagementService = new SiteManagementService(iisConfig);
             IAppService appService = new AppService();
 
-            AppList = new AppListViewModel(publishService, siteManagementService, gitService, appService);
+            IAppViewModelFactory appViewModelFactory = new AppViewModelFactory(publishService, siteManagementService, gitService);
+
+            AppList = new AppListViewModel(appViewModelFactory, appService);
         }
 
         public AppListViewModel AppList
