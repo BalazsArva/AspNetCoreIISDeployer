@@ -1,4 +1,4 @@
-﻿namespace AspNetCoreIISDeployer.Application.Services.DotNet
+﻿namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 {
     public class GitPublishInfo
     {

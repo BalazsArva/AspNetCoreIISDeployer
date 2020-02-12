@@ -3,9 +3,8 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using AspNetCoreIISDeployer.Application.Models;
-using AspNetCoreIISDeployer.Application.Services.DotNet;
+using AspNetCoreIISDeployer.Application.Services.ApplicationServices;
 using AspNetCoreIISDeployer.Application.Services.Git;
-using AspNetCoreIISDeployer.Application.Services.IIS;
 
 namespace AspNetCoreIISDeployer.Application.ViewModels
 {
@@ -20,8 +19,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
         private readonly DelegateCommand fetchCommand;
 
-        private readonly IDotNetPublishService publishService;
-        private readonly ISiteManagementService siteManagementService;
+        private readonly ISiteService siteService;
         private readonly IGitService gitService;
 
         private bool enableSiteManagement = true;
@@ -30,7 +28,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         private PublishInfoViewModel publishInfo = new PublishInfoViewModel();
         private RepositoryInfoViewModel repositoryInfo = new RepositoryInfoViewModel();
 
-        public AppViewModel(IDotNetPublishService publishService, ISiteManagementService siteManagementService, IGitService gitService, AppModel appModel)
+        public AppViewModel(ISiteService siteService, IGitService gitService, AppModel appModel)
         {
             publishAppCommand = new DelegateCommand(PublishApp);
             stopSiteCommand = new DelegateCommand(StopSite);
@@ -41,14 +39,13 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
             fetchCommand = new DelegateCommand(FetchRepository);
 
-            this.publishService = publishService ?? throw new ArgumentNullException(nameof(publishService));
-            this.siteManagementService = siteManagementService ?? throw new ArgumentNullException(nameof(siteManagementService));
+            this.siteService = siteService ?? throw new ArgumentNullException(nameof(siteService));
             this.gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
 
             AppModel = appModel;
 
-            UpdatePublishInfo();
             UpdateRepositoryInfo();
+            Initialize();
         }
 
         public ICommand PublishAppCommand => publishAppCommand;
@@ -107,8 +104,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
                     NotifyPropertyChanged(nameof(EnableSiteManagement));
                 }
             }
-        } 
-        
+        }
+
         public bool EnableRepositoryManagement
         {
             get { return enableRepositoryManagement; }
@@ -123,53 +120,121 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             }
         }
 
-        private void PublishApp(object _)
+        private async void Initialize()
         {
-            BackgroundInvokeManagementCommand(() =>
+            try
             {
-                publishService.Publish(AppModel.ProjectPath, AppModel.BuildConfiguration, AppModel.PublishPath, AppModel.Environment);
-
-                UpdatePublishInfo();
-            });
+                await UpdatePublishInfoAsync();
+            }
+            catch
+            {
+                // TODO: Show error
+            }
         }
 
-        private void StopSite(object _)
+        private async void PublishApp(object _)
         {
-            BackgroundInvokeManagementCommand(() =>
+            // TODO: Display output somewhere
+            try
             {
-                siteManagementService.Stop(AppModel.SiteName);
+                EnableSiteManagement = false;
 
-                UpdatePublishInfo();
-            });
+                await siteService.PublishAppToSiteAsync(AppModel);
+
+                await UpdatePublishInfoAsync();
+            }
+            catch
+            {
+                // TODO: Show eror
+            }
+            finally
+            {
+                EnableSiteManagement = true;
+            }
         }
 
-        private void StartSite(object _)
+        private async void StopSite(object _)
         {
-            BackgroundInvokeManagementCommand(() =>
+            // TODO: Display output somewhere
+            try
             {
-                siteManagementService.Start(AppModel.SiteName);
+                EnableSiteManagement = false;
 
-                UpdatePublishInfo();
-            });
+                await siteService.StopSiteAsync(AppModel.SiteName);
+
+                await UpdatePublishInfoAsync();
+            }
+            catch
+            {
+                // TODO: Show eror
+            }
+            finally
+            {
+                EnableSiteManagement = true;
+            }
         }
 
-        private void RestartSite(object _)
+        private async void StartSite(object _)
         {
-            BackgroundInvokeManagementCommand(() =>
+            // TODO: Display output somewhere
+            try
             {
-                siteManagementService.Stop(AppModel.SiteName);
-                siteManagementService.Start(AppModel.SiteName);
+                EnableSiteManagement = false;
 
-                UpdatePublishInfo();
-            });
+                await siteService.StartSiteAsync(AppModel.SiteName);
+
+                await UpdatePublishInfoAsync();
+            }
+            catch
+            {
+                // TODO: Show eror
+            }
+            finally
+            {
+                EnableSiteManagement = true;
+            }
         }
 
-        private void CreateSite(object _)
+        private async void RestartSite(object _)
         {
-            BackgroundInvokeManagementCommand(() =>
+            // TODO: Display output somewhere
+            try
             {
-                siteManagementService.Create(AppModel.AppPoolName, AppModel.SiteName, AppModel.HttpPort, AppModel.HttpsPort, AppModel.CertificateThumbprint, AppModel.PublishPath);
-            });
+                EnableSiteManagement = false;
+
+                await siteService.RestartSiteAsync(AppModel.SiteName);
+
+                await UpdatePublishInfoAsync();
+            }
+            catch
+            {
+                // TODO: Show eror
+            }
+            finally
+            {
+                EnableSiteManagement = true;
+            }
+        }
+
+        private async void CreateSite(object _)
+        {
+            // TODO: Display output somewhere
+            try
+            {
+                EnableSiteManagement = false;
+
+                await siteService.CreateSiteAsync(AppModel);
+
+                await UpdatePublishInfoAsync();
+            }
+            catch
+            {
+                // TODO: Show eror
+            }
+            finally
+            {
+                EnableSiteManagement = true;
+            }
         }
 
         private void FetchRepository(object _)
@@ -180,28 +245,6 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
                 gitService.Fetch(projectDirectory, true, true);
             });
-        }
-
-        private async void BackgroundInvokeManagementCommand(Action command)
-        {
-            // TODO: Display output somewhere
-            try
-            {
-                EnableSiteManagement = false;
-
-                await Task.Run(() =>
-                {
-                    command();
-                });
-            }
-            catch
-            {
-                // TODO: Show eror
-            }
-            finally
-            {
-                EnableSiteManagement = true;
-            }
         }
 
         private async void BackgroundInvokeRepositoryCommand(Action command)
@@ -226,9 +269,9 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             }
         }
 
-        private void UpdatePublishInfo()
+        private async Task UpdatePublishInfoAsync()
         {
-            var publishedAppInfo = publishService.GetGitPublishInfo(AppModel.PublishPath);
+            var publishedAppInfo = await siteService.GetGitPublishInfoAsync(AppModel.PublishPath);
 
             PublishInfo.Branch = publishedAppInfo.Branch;
             PublishInfo.Commit = publishedAppInfo.Commit;
