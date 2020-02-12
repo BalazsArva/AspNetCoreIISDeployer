@@ -18,6 +18,8 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 
         Task CreateSiteAsync(AppModel appModel);
 
+        Task DeleteSiteAsync(AppModel appModel);
+
         Task<GitPublishInfo> GetGitPublishInfoAsync(string publishPath);
     }
 }

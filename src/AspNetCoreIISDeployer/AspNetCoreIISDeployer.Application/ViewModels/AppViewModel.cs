@@ -15,6 +15,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         private readonly DelegateCommand startSiteCommand;
         private readonly DelegateCommand restartSiteCommand;
         private readonly DelegateCommand createSiteCommand;
+        private readonly DelegateCommand deleteSiteCommand;
         private readonly DelegateCommand updateRepositoryInfoCommand;
 
         private readonly DelegateCommand fetchCommand;
@@ -35,6 +36,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             startSiteCommand = new DelegateCommand(StartSite);
             restartSiteCommand = new DelegateCommand(RestartSite);
             createSiteCommand = new DelegateCommand(CreateSite);
+            deleteSiteCommand = new DelegateCommand(DeleteSite);
             updateRepositoryInfoCommand = new DelegateCommand(_ => UpdateRepositoryInfo());
 
             fetchCommand = new DelegateCommand(FetchRepository);
@@ -59,6 +61,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         public ICommand RestartSiteCommand => restartSiteCommand;
 
         public ICommand CreateSiteCommand => createSiteCommand;
+
+        public ICommand DeleteSiteCommand => deleteSiteCommand;
 
         public ICommand UpdateRepositoryInfoCommand => updateRepositoryInfoCommand;
 
@@ -226,6 +230,25 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
                 EnableSiteManagement = false;
 
                 await siteService.CreateSiteAsync(AppModel);
+            }
+            catch
+            {
+                // TODO: Show eror
+            }
+            finally
+            {
+                EnableSiteManagement = true;
+            }
+        }
+
+        private async void DeleteSite(object _)
+        {
+            // TODO: Display output somewhere
+            try
+            {
+                EnableSiteManagement = false;
+
+                await siteService.DeleteSiteAsync(AppModel);
             }
             catch
             {

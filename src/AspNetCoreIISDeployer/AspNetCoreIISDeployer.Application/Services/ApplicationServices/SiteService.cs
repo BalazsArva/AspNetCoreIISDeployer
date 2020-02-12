@@ -107,6 +107,24 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             });
         }
 
+        public Task DeleteSiteAsync(AppModel appModel)
+        {
+            return Task.Run(async () =>
+            {
+                // TODO: Verify that there is actually a certificate bound to that port.
+                siteManagementService.UnbindCertificateFromSite(appModel.HttpsPort);
+                siteManagementService.Delete(appModel.SiteName);
+
+                // TODO: Maybe should check whether there are any more applications in this pool.
+                // TODO: Later it should also be validated that only 1 app belongs to an apppool as inprocess hosting only works like that.
+                siteManagementService.DeleteAppPool(appModel.AppPoolName);
+
+                Directory.Delete(appModel.PublishPath, true);
+
+                await NotifySiteUpdatedSubscribers(appModel.SiteName);
+            });
+        }
+
         public async Task<GitPublishInfo> GetGitPublishInfoAsync(string publishPath)
         {
             var filePath = Path.Combine(publishPath, GitPublishInfoFileName);
