@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,11 +20,37 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
         private readonly IDotNetPublishService publishService;
         private readonly ISiteManagementService siteManagementService;
 
+        private readonly object siteUpdatedCallbacksLock = new object();
+        private readonly Dictionary<string, List<Func<Task>>> siteUpdatedCallbacks = new Dictionary<string, List<Func<Task>>>();
+
         public SiteService(IGitService gitService, IDotNetPublishService publishService, ISiteManagementService siteManagementService)
         {
             this.gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             this.publishService = publishService ?? throw new ArgumentNullException(nameof(publishService));
             this.siteManagementService = siteManagementService ?? throw new ArgumentNullException(nameof(siteManagementService));
+        }
+
+        public void SubscribeToSiteUpdated(string siteName, Func<Task> callback)
+        {
+            if (siteName is null)
+            {
+                throw new ArgumentNullException(nameof(siteName));
+            }
+
+            if (callback is null)
+            {
+                throw new ArgumentNullException(nameof(callback));
+            }
+
+            lock (siteUpdatedCallbacksLock)
+            {
+                if (!siteUpdatedCallbacks.ContainsKey(siteName))
+                {
+                    siteUpdatedCallbacks.Add(siteName, new List<Func<Task>>());
+                }
+
+                siteUpdatedCallbacks[siteName].Add(callback);
+            }
         }
 
         public Task PublishAppToSiteAsync(AppModel appModel)
@@ -33,6 +60,8 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
                 publishService.Publish(appModel.ProjectPath, appModel.BuildConfiguration, appModel.PublishPath, appModel.Environment);
 
                 await WriteGitInfoFilesAsync(appModel.ProjectPath, appModel.PublishPath);
+
+                await NotifySiteUpdatedSubscribers(appModel.SiteName);
             });
         }
 
@@ -73,6 +102,8 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
                 }
 
                 siteManagementService.Create(appModel.AppPoolName, appModel.SiteName, appModel.HttpPort, appModel.HttpsPort, appModel.CertificateThumbprint, appModel.PublishPath);
+
+                await NotifySiteUpdatedSubscribers(appModel.SiteName);
             });
         }
 
@@ -91,6 +122,25 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             }
 
             return GitPublishInfo.Empty;
+        }
+
+        private async Task NotifySiteUpdatedSubscribers(string siteName)
+        {
+            List<Func<Task>> callbacks;
+            lock (siteUpdatedCallbacksLock)
+            {
+                if (!siteUpdatedCallbacks.ContainsKey(siteName))
+                {
+                    return;
+                }
+
+                callbacks = siteUpdatedCallbacks[siteName];
+            }
+
+            foreach (var callback in siteUpdatedCallbacks[siteName])
+            {
+                await callback();
+            }
         }
 
         private async Task WriteGitInfoFilesAsync(string projectPath, string publishPath)

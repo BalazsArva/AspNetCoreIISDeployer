@@ -44,6 +44,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
             AppModel = appModel;
 
+            siteService.SubscribeToSiteUpdated(appModel.SiteName, UpdatePublishInfoAsync);
+
             UpdateRepositoryInfo();
             Initialize();
         }
@@ -132,6 +134,14 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             }
         }
 
+        private async Task UpdatePublishInfoAsync()
+        {
+            var publishedAppInfo = await siteService.GetGitPublishInfoAsync(AppModel.PublishPath);
+
+            PublishInfo.Branch = publishedAppInfo.Branch;
+            PublishInfo.Commit = publishedAppInfo.Commit;
+        }
+
         private async void PublishApp(object _)
         {
             // TODO: Display output somewhere
@@ -140,8 +150,6 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
                 EnableSiteManagement = false;
 
                 await siteService.PublishAppToSiteAsync(AppModel);
-
-                await UpdatePublishInfoAsync();
             }
             catch
             {
@@ -161,8 +169,6 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
                 EnableSiteManagement = false;
 
                 await siteService.StopSiteAsync(AppModel.SiteName);
-
-                await UpdatePublishInfoAsync();
             }
             catch
             {
@@ -182,8 +188,6 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
                 EnableSiteManagement = false;
 
                 await siteService.StartSiteAsync(AppModel.SiteName);
-
-                await UpdatePublishInfoAsync();
             }
             catch
             {
@@ -203,8 +207,6 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
                 EnableSiteManagement = false;
 
                 await siteService.RestartSiteAsync(AppModel.SiteName);
-
-                await UpdatePublishInfoAsync();
             }
             catch
             {
@@ -224,8 +226,6 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
                 EnableSiteManagement = false;
 
                 await siteService.CreateSiteAsync(AppModel);
-
-                await UpdatePublishInfoAsync();
             }
             catch
             {
@@ -267,14 +267,6 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             {
                 EnableRepositoryManagement = true;
             }
-        }
-
-        private async Task UpdatePublishInfoAsync()
-        {
-            var publishedAppInfo = await siteService.GetGitPublishInfoAsync(AppModel.PublishPath);
-
-            PublishInfo.Branch = publishedAppInfo.Branch;
-            PublishInfo.Commit = publishedAppInfo.Commit;
         }
 
         private void UpdateRepositoryInfo()
