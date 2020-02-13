@@ -135,6 +135,10 @@
                                                     <Run FontWeight="SemiBold">Current commit in project repository: </Run>
                                                     <Run Text="{Binding Path=RepositoryInfo.Commit, Mode=OneWay}" />
                                                 </TextBlock>
+                                                <TextBlock Margin="3">
+                                                    <Run FontWeight="SemiBold">Latest commit in remote branch: </Run>
+                                                    <Run>NYI (git rev-parse `git branch -r --sort=committerdate | tail -1`)</Run>
+                                                </TextBlock>
                                             </StackPanel>
                                         </Grid>
                                     </Border>
