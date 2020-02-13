@@ -27,7 +27,8 @@ namespace AspNetCoreIISDeployer.Application.DependencyInjection
 
             services
                 .AddSingleton<IAppService, AppService>()
-                .AddSingleton<ISiteService, SiteService>();
+                .AddSingleton<ISiteService, SiteService>()
+                .AddSingleton<IRepositoryService, RepositoryService>();
 
             services
                 .AddSingleton<IGitService, GitService>()

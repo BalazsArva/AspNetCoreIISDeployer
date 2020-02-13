@@ -61,7 +61,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 
                 await WriteGitInfoFilesAsync(appModel.ProjectPath, appModel.PublishPath);
 
-                await NotifySiteUpdatedSubscribers(appModel.SiteName);
+                await NotifySiteUpdatedSubscribersAsync(appModel.SiteName);
             });
         }
 
@@ -103,7 +103,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 
                 siteManagementService.Create(appModel.AppPoolName, appModel.SiteName, appModel.HttpPort, appModel.HttpsPort, appModel.CertificateThumbprint, appModel.PublishPath);
 
-                await NotifySiteUpdatedSubscribers(appModel.SiteName);
+                await NotifySiteUpdatedSubscribersAsync(appModel.SiteName);
             });
         }
 
@@ -121,7 +121,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 
                 Directory.Delete(appModel.PublishPath, true);
 
-                await NotifySiteUpdatedSubscribers(appModel.SiteName);
+                await NotifySiteUpdatedSubscribersAsync(appModel.SiteName);
             });
         }
 
@@ -142,7 +142,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             return GitPublishInfo.Empty;
         }
 
-        private async Task NotifySiteUpdatedSubscribers(string siteName)
+        private async Task NotifySiteUpdatedSubscribersAsync(string siteName)
         {
             List<Func<Task>> callbacks;
             lock (siteUpdatedCallbacksLock)

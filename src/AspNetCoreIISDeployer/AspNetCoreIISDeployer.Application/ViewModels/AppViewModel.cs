@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using AspNetCoreIISDeployer.Application.Models;
 using AspNetCoreIISDeployer.Application.Services.ApplicationServices;
-using AspNetCoreIISDeployer.Application.Services.Git;
 
 namespace AspNetCoreIISDeployer.Application.ViewModels
 {
@@ -16,12 +15,12 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         private readonly DelegateCommand restartSiteCommand;
         private readonly DelegateCommand createSiteCommand;
         private readonly DelegateCommand deleteSiteCommand;
-        private readonly DelegateCommand updateRepositoryInfoCommand;
 
+        private readonly DelegateCommand updateRepositoryInfoCommand;
         private readonly DelegateCommand fetchCommand;
 
         private readonly ISiteService siteService;
-        private readonly IGitService gitService;
+        private readonly IRepositoryService repositoryService;
 
         private bool enableSiteManagement = true;
         private bool enableRepositoryManagement = true;
@@ -29,26 +28,27 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         private PublishInfoViewModel publishInfo = new PublishInfoViewModel();
         private RepositoryInfoViewModel repositoryInfo = new RepositoryInfoViewModel();
 
-        public AppViewModel(ISiteService siteService, IGitService gitService, AppModel appModel)
+        public AppViewModel(ISiteService siteService, IRepositoryService repositoryService, AppModel appModel)
         {
+            AppModel = appModel;
+
             publishAppCommand = new DelegateCommand(PublishApp);
             stopSiteCommand = new DelegateCommand(StopSite);
             startSiteCommand = new DelegateCommand(StartSite);
             restartSiteCommand = new DelegateCommand(RestartSite);
             createSiteCommand = new DelegateCommand(CreateSite);
             deleteSiteCommand = new DelegateCommand(DeleteSite);
-            updateRepositoryInfoCommand = new DelegateCommand(_ => UpdateRepositoryInfo());
 
+            updateRepositoryInfoCommand = new DelegateCommand(_ => UpdateRepositoryInfo());
             fetchCommand = new DelegateCommand(FetchRepository);
 
             this.siteService = siteService ?? throw new ArgumentNullException(nameof(siteService));
-            this.gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
+            this.repositoryService = repositoryService ?? throw new ArgumentNullException(nameof(repositoryService));
 
-            AppModel = appModel;
-
+            var repositoryPath = repositoryService.FindRepositoryRoot(appModel.ProjectPath);
+            repositoryService.SubscribeToRepositoryUpdated(repositoryPath, UpdateRepositoryInfoAsync);
             siteService.SubscribeToSiteUpdated(appModel.SiteName, UpdatePublishInfoAsync);
 
-            UpdateRepositoryInfo();
             Initialize();
         }
 
@@ -131,6 +131,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             try
             {
                 await UpdatePublishInfoAsync();
+
+                UpdateRepositoryInfo();
             }
             catch
             {
@@ -144,6 +146,11 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
             PublishInfo.Branch = publishedAppInfo.Branch;
             PublishInfo.Commit = publishedAppInfo.Commit;
+        }
+
+        private async Task UpdateRepositoryInfoAsync()
+        {
+            UpdateRepositoryInfo();
         }
 
         private async void PublishApp(object _)
@@ -260,27 +267,16 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             }
         }
 
-        private void FetchRepository(object _)
-        {
-            BackgroundInvokeRepositoryCommand(() =>
-            {
-                var projectDirectory = Path.GetDirectoryName(AppModel.ProjectPath);
-
-                gitService.Fetch(projectDirectory, true, true);
-            });
-        }
-
-        private async void BackgroundInvokeRepositoryCommand(Action command)
+        private async void FetchRepository(object _)
         {
             // TODO: Display output somewhere
             try
             {
                 EnableRepositoryManagement = false;
 
-                await Task.Run(() =>
-                {
-                    command();
-                });
+                var repositoryPath = repositoryService.FindRepositoryRoot(AppModel.ProjectPath);
+
+                await repositoryService.FetchAsync(repositoryPath, true, true);
             }
             catch
             {
@@ -296,8 +292,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         {
             var repositoryPath = Path.GetDirectoryName(AppModel.ProjectPath);
 
-            var branch = gitService.GetCurrentBranch(repositoryPath);
-            var commit = gitService.GetCurrentCommitHash(repositoryPath);
+            var branch = repositoryService.GetCurrentBranch(repositoryPath);
+            var commit = repositoryService.GetCurrentCommitHash(repositoryPath);
 
             RepositoryInfo.Branch = branch;
             RepositoryInfo.Commit = commit;
