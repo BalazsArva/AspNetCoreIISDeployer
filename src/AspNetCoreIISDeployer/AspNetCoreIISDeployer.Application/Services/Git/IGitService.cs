@@ -6,6 +6,8 @@
 
         string GetCurrentCommitHash(string repositoryPath);
 
+        string GetCurrentCommitHashOfHeadsRemote(string repositoryPath);
+
         bool IsGitRepository(string path);
 
         CommandLineProcessResult Fetch(string repositoryPath, bool all, bool prune);

@@ -54,6 +54,11 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             return gitService.GetCurrentCommitHash(repositoryPath);
         }
 
+        public string GetCurrentCommitHashOfHeadsRemote(string repositoryPath)
+        {
+            return gitService.GetCurrentCommitHashOfHeadsRemote(repositoryPath);
+        }
+
         public Task FetchAsync(string repositoryPath, bool all, bool prune)
         {
             return Task.Run(async () =>

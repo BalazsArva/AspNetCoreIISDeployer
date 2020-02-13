@@ -9,6 +9,8 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 
         string GetCurrentCommitHash(string repositoryPath);
 
+        string GetCurrentCommitHashOfHeadsRemote(string repositoryPath);
+
         string FindRepositoryRoot(string repositoryPath);
 
         Task FetchAsync(string repositoryPath, bool all, bool prune);

@@ -294,9 +294,11 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
             var branch = repositoryService.GetCurrentBranch(repositoryPath);
             var commit = repositoryService.GetCurrentCommitHash(repositoryPath);
+            var commitOnRemote = repositoryService.GetCurrentCommitHashOfHeadsRemote(repositoryPath);
 
             RepositoryInfo.Branch = branch;
             RepositoryInfo.Commit = commit;
+            RepositoryInfo.RemoteCommit = commitOnRemote;
         }
     }
 }

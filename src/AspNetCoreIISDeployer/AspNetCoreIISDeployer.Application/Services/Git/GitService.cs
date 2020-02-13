@@ -41,6 +41,33 @@ namespace AspNetCoreIISDeployer.Application.Services.Git
             throw new GitException($"Could not retrieve commit hash from the specified repository at '{repositoryPath}'.", result.Output);
         }
 
+        public string GetCurrentCommitHashOfHeadsRemote(string repositoryPath)
+        {
+            // TODO: Maybe consider detached head as well
+            var remoteBranchesOutput = ExecuteCommandLineApplication(configuration.GitPath, "branch -r", repositoryPath);
+
+            var remoteOfHeadOutputLine = remoteBranchesOutput
+                .Output
+                .Where(x => !x.IsError && x.Text.Contains("/HEAD -> "))
+                .SingleOrDefault();
+
+            var remoteOfHead = remoteOfHeadOutputLine?.Text.Split("->").ElementAtOrDefault(1)?.Trim();
+
+            if (!string.IsNullOrEmpty(remoteOfHead))
+            {
+                var result = ExecuteCommandLineApplication(configuration.GitPath, $"rev-parse {remoteOfHead}", repositoryPath);
+
+                if (result.Output.Count == 1 && IsGitLongHashLike(result.Output[0].Text))
+                {
+                    return result.Output[0].Text;
+                }
+
+                throw new GitException($"Could not retrieve the commit hash of the head's remote from the specified repository at '{repositoryPath}'.", result.Output);
+            }
+
+            throw new GitException($"Could not retrieve the commit hash of the head's remote from the specified repository at '{repositoryPath}'.", remoteBranchesOutput.Output);
+        }
+
         public string GetCurrentBranch(string repositoryPath)
         {
             var result = ExecuteCommandLineApplication(configuration.GitPath, "status", repositoryPath);
