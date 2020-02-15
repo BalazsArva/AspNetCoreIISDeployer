@@ -45,18 +45,21 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             }
         }
 
-        public GitRepositoryInfo GetRepositoryInfo(string repositoryPath)
+        public Task<GitRepositoryInfo> GetRepositoryInfoAsync(string repositoryPath)
         {
-            if (!gitService.IsGitRepository(repositoryPath))
+            return Task.Run(() =>
             {
-                return GitRepositoryInfo.Empty;
-            }
+                if (!gitService.IsGitRepository(repositoryPath))
+                {
+                    return GitRepositoryInfo.Empty;
+                }
 
-            var branch = gitService.GetCurrentBranch(repositoryPath);
-            var commit = gitService.GetCurrentCommitHash(repositoryPath);
-            var commitOnRemote = gitService.GetCurrentUpstreamCommitHash(repositoryPath);
+                var branch = gitService.GetCurrentBranch(repositoryPath);
+                var commit = gitService.GetCurrentCommitHash(repositoryPath);
+                var commitOnRemote = gitService.GetCurrentUpstreamCommitHash(repositoryPath);
 
-            return new GitRepositoryInfo(branch, commit, commitOnRemote ?? NoUpstreamBranchMessage);
+                return new GitRepositoryInfo(branch, commit, commitOnRemote ?? NoUpstreamBranchMessage);
+            });
         }
 
         public Task FetchAsync(string repositoryPath, bool all, bool prune)

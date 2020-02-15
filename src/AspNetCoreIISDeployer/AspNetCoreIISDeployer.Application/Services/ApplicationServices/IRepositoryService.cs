@@ -5,12 +5,12 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 {
     public interface IRepositoryService
     {
-        GitRepositoryInfo GetRepositoryInfo(string repositoryPath);
+        void SubscribeToRepositoryUpdated(string repositoryPath, Func<Task> callback);
 
         string FindRepositoryRoot(string repositoryPath);
 
-        Task FetchAsync(string repositoryPath, bool all, bool prune);
+        Task<GitRepositoryInfo> GetRepositoryInfoAsync(string repositoryPath);
 
-        void SubscribeToRepositoryUpdated(string repositoryPath, Func<Task> callback);
+        Task FetchAsync(string repositoryPath, bool all, bool prune);
     }
 }

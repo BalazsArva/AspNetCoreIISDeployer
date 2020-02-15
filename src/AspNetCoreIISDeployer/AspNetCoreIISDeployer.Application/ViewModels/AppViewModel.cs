@@ -39,7 +39,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             createSiteCommand = new DelegateCommand(CreateSite);
             deleteSiteCommand = new DelegateCommand(DeleteSite);
 
-            updateRepositoryInfoCommand = new DelegateCommand(_ => UpdateRepositoryInfo());
+            updateRepositoryInfoCommand = new DelegateCommand(async _ => await UpdateRepositoryInfoAsync());
             fetchCommand = new DelegateCommand(FetchRepository);
 
             this.siteService = siteService ?? throw new ArgumentNullException(nameof(siteService));
@@ -132,7 +132,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             {
                 await UpdatePublishInfoAsync();
 
-                UpdateRepositoryInfo();
+                await UpdateRepositoryInfoAsync();
             }
             catch
             {
@@ -148,11 +148,14 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             PublishInfo.Commit = publishedAppInfo.Commit;
         }
 
-        private Task UpdateRepositoryInfoAsync()
+        private async Task UpdateRepositoryInfoAsync()
         {
-            UpdateRepositoryInfo();
+            var repositoryPath = Path.GetDirectoryName(AppModel.ProjectPath);
+            var repositoryInfo = await repositoryService.GetRepositoryInfoAsync(repositoryPath);
 
-            return Task.CompletedTask;
+            RepositoryInfo.Branch = repositoryInfo.Branch;
+            RepositoryInfo.Commit = repositoryInfo.Commit;
+            RepositoryInfo.RemoteCommit = repositoryInfo.RemoteCommit;
         }
 
         private async void PublishApp(object _)
@@ -288,16 +291,6 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             {
                 EnableRepositoryManagement = true;
             }
-        }
-
-        private void UpdateRepositoryInfo()
-        {
-            var repositoryPath = Path.GetDirectoryName(AppModel.ProjectPath);
-            var repositoryInfo = repositoryService.GetRepositoryInfo(repositoryPath);
-
-            RepositoryInfo.Branch = repositoryInfo.Branch;
-            RepositoryInfo.Commit = repositoryInfo.Commit;
-            RepositoryInfo.RemoteCommit = repositoryInfo.RemoteCommit;
         }
     }
 }
