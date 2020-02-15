@@ -39,31 +39,25 @@ namespace AspNetCoreIISDeployer.Application.Services.Git
             throw new GitException($"Could not retrieve commit hash from the specified repository at '{repositoryPath}'.", result.Output);
         }
 
-        public string GetCurrentCommitHashOfHeadsRemote(string repositoryPath)
+        public string GetCurrentUpstreamCommitHash(string repositoryPath)
         {
-            // TODO: Maybe consider detached head as well
-            var remoteBranchesOutput = ExecuteCommandLineApplication(configuration.GitPath, "branch -r", repositoryPath);
+            // TODO: Maybe consider detached mode as well
+            var remoteBranch = GetUpstreamOfCurrentBranch(repositoryPath);
 
-            var remoteOfHeadOutputLine = remoteBranchesOutput
-                .Output
-                .Where(x => !x.IsError && x.Text.Contains("/HEAD -> "))
-                .SingleOrDefault();
-
-            var remoteOfHead = remoteOfHeadOutputLine?.Text.Split("->").ElementAtOrDefault(1)?.Trim();
-
-            if (!string.IsNullOrEmpty(remoteOfHead))
+            // remoteBranch is null when there is no upstream
+            if (!string.IsNullOrEmpty(remoteBranch))
             {
-                var result = ExecuteCommandLineApplication(configuration.GitPath, $"rev-parse {remoteOfHead}", repositoryPath);
+                var result = ExecuteCommandLineApplication(configuration.GitPath, $"rev-parse {remoteBranch}", repositoryPath);
 
-                if (result.Output.Count == 1 && IsGitLongHashLike(result.Output[0].Text))
+                if (result.Output.Count == 1 && !result.Output[0].IsError && IsGitLongHashLike(result.Output[0].Text))
                 {
                     return result.Output[0].Text;
                 }
 
-                throw new GitException($"Could not retrieve the commit hash of the head's remote from the specified repository at '{repositoryPath}'.", result.Output);
+                throw new GitException($"Could not retrieve the commit hash of the current branch's upstream from the specified repository at '{repositoryPath}'.", result.Output);
             }
 
-            throw new GitException($"Could not retrieve the commit hash of the head's remote from the specified repository at '{repositoryPath}'.", remoteBranchesOutput.Output);
+            return null;
         }
 
         public string GetCurrentBranch(string repositoryPath)
@@ -76,6 +70,26 @@ namespace AspNetCoreIISDeployer.Application.Services.Git
             }
 
             throw new GitException($"Could not retrieve current branch from the specified repository at '{repositoryPath}'.", result.Output);
+        }
+
+        public string GetUpstreamOfCurrentBranch(string repositoryPath)
+        {
+            // Output when branch has upstream:
+            // ## master...origin/master
+            //
+            // Output when branch has no upstream:
+            // ## SomeBranch
+            var result = ExecuteCommandLineApplication(configuration.GitPath, "status -sb", repositoryPath);
+
+            if (result.Output.Count == 1 && !result.Output[0].IsError)
+            {
+                var upstreamInfo = result.Output[0].Text;
+                var upstreamBranchName = upstreamInfo.Split("...", StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(1);
+
+                return upstreamBranchName;
+            }
+
+            throw new GitException($"Could not retrieve upstream of current branch from the specified repository at '{repositoryPath}'.", result.Output);
         }
 
         public CommandLineProcessResult Fetch(string repositoryPath, bool all, bool prune)

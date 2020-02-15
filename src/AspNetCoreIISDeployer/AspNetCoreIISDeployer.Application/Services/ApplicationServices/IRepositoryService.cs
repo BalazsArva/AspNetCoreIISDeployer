@@ -9,7 +9,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 
         string GetCurrentCommitHash(string repositoryPath);
 
-        string GetCurrentCommitHashOfHeadsRemote(string repositoryPath);
+        string GetCurrentUpstreamCommitHash(string repositoryPath);
 
         string FindRepositoryRoot(string repositoryPath);
 

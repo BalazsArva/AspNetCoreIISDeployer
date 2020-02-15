@@ -136,7 +136,7 @@
                                                     <Run Text="{Binding Path=RepositoryInfo.Commit, Mode=OneWay}" />
                                                 </TextBlock>
                                                 <TextBlock Margin="3">
-                                                    <Run FontWeight="SemiBold">Latest commit in remote branch: </Run>
+                                                    <Run FontWeight="SemiBold">Latest commit in upstream branch: </Run>
                                                     <Run Text="{Binding Path=RepositoryInfo.RemoteCommit, Mode=OneWay}" />
                                                 </TextBlock>
                                             </StackPanel>

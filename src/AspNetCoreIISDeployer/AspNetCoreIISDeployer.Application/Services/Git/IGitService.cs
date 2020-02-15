@@ -4,9 +4,11 @@
     {
         string GetCurrentBranch(string repositoryPath);
 
+        string GetUpstreamOfCurrentBranch(string repositoryPath);
+
         string GetCurrentCommitHash(string repositoryPath);
 
-        string GetCurrentCommitHashOfHeadsRemote(string repositoryPath);
+        string GetCurrentUpstreamCommitHash(string repositoryPath);
 
         bool IsGitRepository(string path);
 
