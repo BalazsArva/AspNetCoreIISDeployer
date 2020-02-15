@@ -79,17 +79,17 @@ namespace AspNetCoreIISDeployer.Application.Services.Git
             //
             // Output when branch has no upstream:
             // ## SomeBranch
-            var result = ExecuteCommandLineApplication(configuration.GitPath, "status -sb", repositoryPath);
+            var commandResult = ExecuteCommandLineApplication(configuration.GitPath, "status -sb", repositoryPath);
 
-            if (result.Output.Count == 1 && !result.Output[0].IsError)
+            var upstreamInfo = commandResult.Output.FirstOrDefault(x => !x.IsError && x.Text.StartsWith("##")).Text;
+            if (upstreamInfo != null)
             {
-                var upstreamInfo = result.Output[0].Text;
                 var upstreamBranchName = upstreamInfo.Split("...", StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(1);
 
                 return upstreamBranchName;
             }
 
-            throw new GitException($"Could not retrieve upstream of current branch from the specified repository at '{repositoryPath}'.", result.Output);
+            throw new GitException($"Could not retrieve upstream of current branch from the specified repository at '{repositoryPath}'.", commandResult.Output);
         }
 
         public CommandLineProcessResult Fetch(string repositoryPath, bool all, bool prune)

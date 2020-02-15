@@ -4,7 +4,7 @@
     "appPoolName": "identity-provider-api1",
     "siteName": "identity-provider-api1",
     "buildConfiguration": "Debug",
-    "environment": "Development",
+    "environment": "DevelopmentIIS",
     "httpPort": 8011,
     "httpsPort": 44311
   },
