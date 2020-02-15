@@ -9,6 +9,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 {
     public class RepositoryService : IRepositoryService
     {
+        private const string NoUpstreamBranchMessage = "(Current branch has no upstream)";
         private const string GitFolderName = ".git";
 
         private readonly IGitService gitService;
@@ -44,19 +45,18 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             }
         }
 
-        public string GetCurrentBranch(string repositoryPath)
+        public GitRepositoryInfo GetRepositoryInfo(string repositoryPath)
         {
-            return gitService.GetCurrentBranch(repositoryPath);
-        }
+            if (!gitService.IsGitRepository(repositoryPath))
+            {
+                return GitRepositoryInfo.Empty;
+            }
 
-        public string GetCurrentCommitHash(string repositoryPath)
-        {
-            return gitService.GetCurrentCommitHash(repositoryPath);
-        }
+            var branch = gitService.GetCurrentBranch(repositoryPath);
+            var commit = gitService.GetCurrentCommitHash(repositoryPath);
+            var commitOnRemote = gitService.GetCurrentUpstreamCommitHash(repositoryPath);
 
-        public string GetCurrentUpstreamCommitHash(string repositoryPath)
-        {
-            return gitService.GetCurrentUpstreamCommitHash(repositoryPath);
+            return new GitRepositoryInfo(branch, commit, commitOnRemote ?? NoUpstreamBranchMessage);
         }
 
         public Task FetchAsync(string repositoryPath, bool all, bool prune)

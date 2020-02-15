@@ -9,8 +9,6 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 {
     public class AppViewModel : ViewModelBase
     {
-        private const string NoUpstreamBranchMessage = "(Current branch has no upstream)";
-
         private readonly DelegateCommand publishAppCommand;
         private readonly DelegateCommand stopSiteCommand;
         private readonly DelegateCommand startSiteCommand;
@@ -295,14 +293,11 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         private void UpdateRepositoryInfo()
         {
             var repositoryPath = Path.GetDirectoryName(AppModel.ProjectPath);
+            var repositoryInfo = repositoryService.GetRepositoryInfo(repositoryPath);
 
-            var branch = repositoryService.GetCurrentBranch(repositoryPath);
-            var commit = repositoryService.GetCurrentCommitHash(repositoryPath);
-            var commitOnRemote = repositoryService.GetCurrentUpstreamCommitHash(repositoryPath);
-
-            RepositoryInfo.Branch = branch;
-            RepositoryInfo.Commit = commit;
-            RepositoryInfo.RemoteCommit = commitOnRemote ?? NoUpstreamBranchMessage;
+            RepositoryInfo.Branch = repositoryInfo.Branch;
+            RepositoryInfo.Commit = repositoryInfo.Commit;
+            RepositoryInfo.RemoteCommit = repositoryInfo.RemoteCommit;
         }
     }
 }

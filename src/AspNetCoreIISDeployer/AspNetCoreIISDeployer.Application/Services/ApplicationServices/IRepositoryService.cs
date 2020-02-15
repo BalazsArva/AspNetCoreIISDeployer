@@ -5,11 +5,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 {
     public interface IRepositoryService
     {
-        string GetCurrentBranch(string repositoryPath);
-
-        string GetCurrentCommitHash(string repositoryPath);
-
-        string GetCurrentUpstreamCommitHash(string repositoryPath);
+        GitRepositoryInfo GetRepositoryInfo(string repositoryPath);
 
         string FindRepositoryRoot(string repositoryPath);
 
