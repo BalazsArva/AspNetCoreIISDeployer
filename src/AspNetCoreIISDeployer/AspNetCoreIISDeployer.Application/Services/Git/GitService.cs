@@ -7,8 +7,6 @@ namespace AspNetCoreIISDeployer.Application.Services.Git
 {
     public class GitService : CommandLineToolServiceBase, IGitService
     {
-        private const string OnBranchPrefix = "On branch ";
-
         private readonly GitConfiguration configuration;
 
         public GitService(GitConfiguration configuration)
@@ -70,12 +68,11 @@ namespace AspNetCoreIISDeployer.Application.Services.Git
 
         public string GetCurrentBranch(string repositoryPath)
         {
-            var result = ExecuteCommandLineApplication(configuration.GitPath, "status", repositoryPath);
+            var result = ExecuteCommandLineApplication(configuration.GitPath, "branch --show-current", repositoryPath);
 
-            var repositoryMessageLine = result.Output.FirstOrDefault(x => x.Text.StartsWith(OnBranchPrefix, StringComparison.OrdinalIgnoreCase));
-            if (repositoryMessageLine != null)
+            if (result.Output.Count == 1 && !result.Output[0].IsError)
             {
-                return repositoryMessageLine.Text.Substring(OnBranchPrefix.Length);
+                return result.Output[0].Text;
             }
 
             throw new GitException($"Could not retrieve current branch from the specified repository at '{repositoryPath}'.", result.Output);
