@@ -18,7 +18,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
         private readonly DelegateCommand updateRepositoryInfoCommand;
         private readonly DelegateCommand fetchCommand;
-
+        private readonly INotificationService notificationService;
         private readonly ISiteService siteService;
         private readonly IRepositoryService repositoryService;
 
@@ -28,7 +28,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         private PublishInfoViewModel publishInfo = new PublishInfoViewModel();
         private RepositoryInfoViewModel repositoryInfo = new RepositoryInfoViewModel();
 
-        public AppViewModel(ISiteService siteService, IRepositoryService repositoryService, AppModel appModel)
+        public AppViewModel(INotificationService notificationService, ISiteService siteService, IRepositoryService repositoryService, AppModel appModel)
         {
             AppModel = appModel;
 
@@ -42,6 +42,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             updateRepositoryInfoCommand = new DelegateCommand(async _ => await UpdateRepositoryInfoAsync());
             fetchCommand = new DelegateCommand(FetchRepository);
 
+            this.notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             this.siteService = siteService ?? throw new ArgumentNullException(nameof(siteService));
             this.repositoryService = repositoryService ?? throw new ArgumentNullException(nameof(repositoryService));
 
@@ -167,9 +168,9 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
                 await siteService.PublishAppToSiteAsync(AppModel);
             }
-            catch
+            catch (Exception e)
             {
-                // TODO: Show eror
+                notificationService.NotifyError("Error", e.Message);
             }
             finally
             {
@@ -186,9 +187,9 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
                 await siteService.StopSiteAsync(AppModel.SiteName);
             }
-            catch
+            catch (Exception e)
             {
-                // TODO: Show eror
+                notificationService.NotifyError("Error", e.Message);
             }
             finally
             {
@@ -205,9 +206,9 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
                 await siteService.StartSiteAsync(AppModel.SiteName);
             }
-            catch
+            catch (Exception e)
             {
-                // TODO: Show eror
+                notificationService.NotifyError("Error", e.Message);
             }
             finally
             {
@@ -224,9 +225,9 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
                 await siteService.RestartSiteAsync(AppModel.SiteName);
             }
-            catch
+            catch (Exception e)
             {
-                // TODO: Show eror
+                notificationService.NotifyError("Error", e.Message);
             }
             finally
             {
@@ -243,9 +244,9 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
                 await siteService.CreateSiteAsync(AppModel);
             }
-            catch
+            catch (Exception e)
             {
-                // TODO: Show eror
+                notificationService.NotifyError("Error", e.Message);
             }
             finally
             {
@@ -262,9 +263,9 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
                 await siteService.DeleteSiteAsync(AppModel);
             }
-            catch
+            catch (Exception e)
             {
-                // TODO: Show eror
+                notificationService.NotifyError("Error", e.Message);
             }
             finally
             {
@@ -283,9 +284,9 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
                 await repositoryService.FetchAsync(repositoryPath, true, true);
             }
-            catch
+            catch (Exception e)
             {
-                // TODO: Show eror
+                notificationService.NotifyError("Error", e.Message);
             }
             finally
             {

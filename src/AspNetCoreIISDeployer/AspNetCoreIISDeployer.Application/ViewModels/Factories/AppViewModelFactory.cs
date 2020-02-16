@@ -6,11 +6,13 @@ namespace AspNetCoreIISDeployer.Application.ViewModels.Factories
 {
     public class AppViewModelFactory : IAppViewModelFactory
     {
+        private readonly INotificationService notificationService;
         private readonly ISiteService siteService;
         private readonly IRepositoryService repositoryService;
 
-        public AppViewModelFactory(ISiteService siteService, IRepositoryService repositoryService)
+        public AppViewModelFactory(INotificationService notificationService, ISiteService siteService, IRepositoryService repositoryService)
         {
+            this.notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             this.siteService = siteService ?? throw new ArgumentNullException(nameof(siteService));
             this.repositoryService = repositoryService ?? throw new ArgumentNullException(nameof(repositoryService));
         }
@@ -22,7 +24,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels.Factories
                 throw new ArgumentNullException(nameof(appModel));
             }
 
-            return new AppViewModel(siteService, repositoryService, appModel);
+            return new AppViewModel(notificationService, siteService, repositoryService, appModel);
         }
     }
 }
