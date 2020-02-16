@@ -82,6 +82,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
         {
             return Task.Run(() =>
             {
+                siteManagementService.SetServerAutoStart(siteName, true);
                 siteManagementService.Start(siteName);
             });
         }
@@ -90,6 +91,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
         {
             return Task.Run(() =>
             {
+                siteManagementService.SetServerAutoStart(siteName, true);
                 siteManagementService.Stop(siteName);
                 siteManagementService.Start(siteName);
             });
@@ -99,6 +101,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
         {
             return Task.Run(() =>
             {
+                siteManagementService.SetServerAutoStart(siteName, false);
                 siteManagementService.Stop(siteName);
             });
         }
@@ -115,6 +118,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
                 }
 
                 siteManagementService.Create(appModel.AppPoolName, appModel.SiteName, appModel.HttpPort, appModel.HttpsPort, appModel.CertificateThumbprint, appModel.PublishPath);
+                siteManagementService.SetServerAutoStart(appModel.SiteName, true);
 
                 await NotifySiteUpdatedSubscribersAsync(appModel.SiteName);
             });

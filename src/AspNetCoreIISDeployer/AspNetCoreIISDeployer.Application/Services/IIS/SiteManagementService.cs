@@ -139,6 +139,15 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
             return ExecuteAppCmdCommand(arguments);
         }
 
+        public CommandLineProcessResult SetServerAutoStart(string siteName, bool autoStart)
+        {
+            ValidateSiteName(siteName);
+
+            var arguments = $"set site \"{siteName}\" /serverAutoStart:{autoStart}";
+
+            return ExecuteAppCmdCommand(arguments);
+        }
+
         // TODO: Refactor apppool operations (either keep here or at ApplicationPoolManagementService)
         public CommandLineProcessResult StartAppPool(string appPoolName)
         {

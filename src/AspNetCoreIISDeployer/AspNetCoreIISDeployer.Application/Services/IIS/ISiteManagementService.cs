@@ -20,6 +20,8 @@
 
         CommandLineProcessResult DeleteAppPool(string appPoolName);
 
+        CommandLineProcessResult SetServerAutoStart(string siteName, bool autoStart);
+
         bool AppPoolExists(string appPoolName);
 
         bool SiteExists(string siteName);
