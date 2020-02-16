@@ -129,148 +129,70 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
         private async void Initialize()
         {
-            try
-            {
-                await UpdatePublishInfoAsync();
-
-                await UpdateRepositoryInfoAsync();
-            }
-            catch
-            {
-                // TODO: Show error
-            }
+            await UpdatePublishInfoAsync();
+            await UpdateRepositoryInfoAsync();
         }
 
         private async Task UpdatePublishInfoAsync()
         {
-            var publishedAppInfo = await siteService.GetGitPublishInfoAsync(AppModel.PublishPath);
+            try
+            {
+                var publishedAppInfo = await siteService.GetGitPublishInfoAsync(AppModel.PublishPath);
 
-            PublishInfo.Branch = publishedAppInfo.Branch;
-            PublishInfo.Commit = publishedAppInfo.Commit;
+                PublishInfo.Branch = publishedAppInfo.Branch;
+                PublishInfo.Commit = publishedAppInfo.Commit;
+            }
+            catch (Exception e)
+            {
+                notificationService.NotifyError("Error", e.Message);
+            }
         }
 
         private async Task UpdateRepositoryInfoAsync()
         {
-            var repositoryPath = Path.GetDirectoryName(AppModel.ProjectPath);
-            var repositoryInfo = await repositoryService.GetRepositoryInfoAsync(repositoryPath);
+            try
+            {
+                var repositoryPath = Path.GetDirectoryName(AppModel.ProjectPath);
+                var repositoryInfo = await repositoryService.GetRepositoryInfoAsync(repositoryPath);
 
-            RepositoryInfo.Branch = repositoryInfo.Branch;
-            RepositoryInfo.Commit = repositoryInfo.Commit;
-            RepositoryInfo.RemoteCommit = repositoryInfo.RemoteCommit;
+                RepositoryInfo.Branch = repositoryInfo.Branch;
+                RepositoryInfo.Commit = repositoryInfo.Commit;
+                RepositoryInfo.RemoteCommit = repositoryInfo.RemoteCommit;
+            }
+            catch (Exception e)
+            {
+                notificationService.NotifyError("Error", e.Message);
+            }
         }
 
         private async void PublishApp(object _)
         {
-            // TODO: Display output somewhere
-            try
-            {
-                EnableSiteManagement = false;
-
-                await siteService.PublishAppToSiteAsync(AppModel);
-            }
-            catch (Exception e)
-            {
-                notificationService.NotifyError("Error", e.Message);
-            }
-            finally
-            {
-                EnableSiteManagement = true;
-            }
+            await SafeInvokeSiteManagementCommandAsync(async () => await siteService.PublishAppToSiteAsync(AppModel));
         }
 
         private async void StopSite(object _)
         {
-            // TODO: Display output somewhere
-            try
-            {
-                EnableSiteManagement = false;
-
-                await siteService.StopSiteAsync(AppModel.SiteName);
-            }
-            catch (Exception e)
-            {
-                notificationService.NotifyError("Error", e.Message);
-            }
-            finally
-            {
-                EnableSiteManagement = true;
-            }
+            await SafeInvokeSiteManagementCommandAsync(async () => await siteService.StopSiteAsync(AppModel.SiteName));
         }
 
         private async void StartSite(object _)
         {
-            // TODO: Display output somewhere
-            try
-            {
-                EnableSiteManagement = false;
-
-                await siteService.StartSiteAsync(AppModel.SiteName);
-            }
-            catch (Exception e)
-            {
-                notificationService.NotifyError("Error", e.Message);
-            }
-            finally
-            {
-                EnableSiteManagement = true;
-            }
+            await SafeInvokeSiteManagementCommandAsync(async () => await siteService.StartSiteAsync(AppModel.SiteName));
         }
 
         private async void RestartSite(object _)
         {
-            // TODO: Display output somewhere
-            try
-            {
-                EnableSiteManagement = false;
-
-                await siteService.RestartSiteAsync(AppModel.SiteName);
-            }
-            catch (Exception e)
-            {
-                notificationService.NotifyError("Error", e.Message);
-            }
-            finally
-            {
-                EnableSiteManagement = true;
-            }
+            await SafeInvokeSiteManagementCommandAsync(async () => await siteService.RestartSiteAsync(AppModel.SiteName));
         }
 
         private async void CreateSite(object _)
         {
-            // TODO: Display output somewhere
-            try
-            {
-                EnableSiteManagement = false;
-
-                await siteService.CreateSiteAsync(AppModel);
-            }
-            catch (Exception e)
-            {
-                notificationService.NotifyError("Error", e.Message);
-            }
-            finally
-            {
-                EnableSiteManagement = true;
-            }
+            await SafeInvokeSiteManagementCommandAsync(async () => await siteService.CreateSiteAsync(AppModel));
         }
 
         private async void DeleteSite(object _)
         {
-            // TODO: Display output somewhere
-            try
-            {
-                EnableSiteManagement = false;
-
-                await siteService.DeleteSiteAsync(AppModel);
-            }
-            catch (Exception e)
-            {
-                notificationService.NotifyError("Error", e.Message);
-            }
-            finally
-            {
-                EnableSiteManagement = true;
-            }
+            await SafeInvokeSiteManagementCommandAsync(async () => await siteService.DeleteSiteAsync(AppModel));
         }
 
         private async void FetchRepository(object _)
@@ -291,6 +213,25 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             finally
             {
                 EnableRepositoryManagement = true;
+            }
+        }
+
+        private async Task SafeInvokeSiteManagementCommandAsync(Func<Task> task)
+        {
+            // TODO: Display output somewhere
+            try
+            {
+                EnableSiteManagement = false;
+
+                await task();
+            }
+            catch (Exception e)
+            {
+                notificationService.NotifyError("Error", e.Message);
+            }
+            finally
+            {
+                EnableSiteManagement = true;
             }
         }
     }
