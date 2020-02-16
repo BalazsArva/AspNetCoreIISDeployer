@@ -30,7 +30,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
         public AppViewModel(INotificationService notificationService, ISiteService siteService, IRepositoryService repositoryService, AppModel appModel)
         {
-            AppModel = appModel;
+            AppModel = appModel ?? throw new ArgumentNullException(nameof(appModel));
 
             publishAppCommand = new DelegateCommand(PublishApp);
             stopSiteCommand = new DelegateCommand(StopSite);
@@ -167,53 +167,42 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
         private async void PublishApp(object _)
         {
-            await SafeInvokeSiteManagementCommandAsync(async () => await siteService.PublishAppToSiteAsync(AppModel));
+            await SafeInvokeSiteManagementCommandAsync(() => siteService.PublishAppToSiteAsync(AppModel));
         }
 
         private async void StopSite(object _)
         {
-            await SafeInvokeSiteManagementCommandAsync(async () => await siteService.StopSiteAsync(AppModel.SiteName));
+            await SafeInvokeSiteManagementCommandAsync(() => siteService.StopSiteAsync(AppModel.SiteName));
         }
 
         private async void StartSite(object _)
         {
-            await SafeInvokeSiteManagementCommandAsync(async () => await siteService.StartSiteAsync(AppModel.SiteName));
+            await SafeInvokeSiteManagementCommandAsync(() => siteService.StartSiteAsync(AppModel.SiteName));
         }
 
         private async void RestartSite(object _)
         {
-            await SafeInvokeSiteManagementCommandAsync(async () => await siteService.RestartSiteAsync(AppModel.SiteName));
+            await SafeInvokeSiteManagementCommandAsync(() => siteService.RestartSiteAsync(AppModel.SiteName));
         }
 
         private async void CreateSite(object _)
         {
-            await SafeInvokeSiteManagementCommandAsync(async () => await siteService.CreateSiteAsync(AppModel));
+            await SafeInvokeSiteManagementCommandAsync(() => siteService.CreateSiteAsync(AppModel));
         }
 
         private async void DeleteSite(object _)
         {
-            await SafeInvokeSiteManagementCommandAsync(async () => await siteService.DeleteSiteAsync(AppModel));
+            await SafeInvokeSiteManagementCommandAsync(() => siteService.DeleteSiteAsync(AppModel));
         }
 
         private async void FetchRepository(object _)
         {
-            // TODO: Display output somewhere
-            try
+            await SafeInvokeRepositoryManagementCommandAsync(() =>
             {
-                EnableRepositoryManagement = false;
-
                 var repositoryPath = repositoryService.FindRepositoryRoot(AppModel.ProjectPath);
 
-                await repositoryService.FetchAsync(repositoryPath, true, true);
-            }
-            catch (Exception e)
-            {
-                notificationService.NotifyError("Error", e.Message);
-            }
-            finally
-            {
-                EnableRepositoryManagement = true;
-            }
+                return repositoryService.FetchAsync(repositoryPath, true, true);
+            });
         }
 
         private async Task SafeInvokeSiteManagementCommandAsync(Func<Task> task)
@@ -232,6 +221,25 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             finally
             {
                 EnableSiteManagement = true;
+            }
+        }
+
+        private async Task SafeInvokeRepositoryManagementCommandAsync(Func<Task> task)
+        {
+            // TODO: Display output somewhere
+            try
+            {
+                EnableRepositoryManagement = false;
+
+                await task();
+            }
+            catch (Exception e)
+            {
+                notificationService.NotifyError("Error", e.Message);
+            }
+            finally
+            {
+                EnableRepositoryManagement = true;
             }
         }
     }
