@@ -19,5 +19,9 @@
         CommandLineProcessResult CreateAppPool(string appPoolName);
 
         CommandLineProcessResult DeleteAppPool(string appPoolName);
+
+        bool AppPoolExists(string appPoolName);
+
+        bool SiteExists(string siteName);
     }
 }

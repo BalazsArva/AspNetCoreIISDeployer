@@ -57,17 +57,24 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
         {
             return Task.Run(async () =>
             {
-                // TODO: Only run this if the site exists
-                siteManagementService.Stop(appModel.SiteName);
+                var siteName = appModel.SiteName;
+                var siteExists = siteManagementService.SiteExists(siteName);
+
+                if (siteExists)
+                {
+                    siteManagementService.Stop(siteName);
+                }
 
                 publishService.Publish(appModel.ProjectPath, appModel.BuildConfiguration, appModel.PublishPath, appModel.Environment);
 
                 await WriteGitInfoFilesAsync(appModel.ProjectPath, appModel.PublishPath);
 
-                // TODO: Only run this if the site exists
-                siteManagementService.Start(appModel.SiteName);
+                if (siteExists)
+                {
+                    siteManagementService.Start(siteName);
+                }
 
-                await NotifySiteUpdatedSubscribersAsync(appModel.SiteName);
+                await NotifySiteUpdatedSubscribersAsync(siteName);
             });
         }
 

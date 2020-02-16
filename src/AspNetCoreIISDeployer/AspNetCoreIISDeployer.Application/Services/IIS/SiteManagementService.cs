@@ -9,8 +9,6 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
 {
     public class SiteManagementService : IISManagementServiceBase, ISiteManagementService
     {
-        private const string NetShListCertificateBindingsCommandArgument = "http show sslcert";
-
         private const string AppCmdListAppPoolsCommandArgument = "list apppool";
         private const string AppCmdListSitesCommandArgument = "list site";
 
@@ -247,14 +245,14 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
             return result;
         }
 
-        private bool AppPoolExists(string appPoolName)
+        public bool AppPoolExists(string appPoolName)
         {
             var appPools = ListAppPools();
 
             return appPools.Any(x => string.Equals(x.Name, appPoolName, StringComparison.Ordinal));
         }
 
-        private bool SiteExists(string siteName)
+        public bool SiteExists(string siteName)
         {
             var sites = ListSites();
 
