@@ -74,17 +74,29 @@ namespace AspNetCoreIISDeployer.Application.Services.Git
 
         public string GetUpstreamOfCurrentBranch(string repositoryPath)
         {
-            // Output when branch has upstream:
+            // Output when branch has upstream, in sync with remote:
             // ## master...origin/master
             //
             // Output when branch has no upstream:
             // ## SomeBranch
+            //
+            // Output when branch is behind remote:
+            // ## master...origin/master [behind 1]
+            //
+            // Output when branch is ahead remote:
+            // ## master...origin/master [ahead 1]
             var commandResult = ExecuteCommandLineApplication(configuration.GitPath, "status -sb", repositoryPath);
 
             var upstreamInfo = commandResult.Output.FirstOrDefault(x => !x.IsError && x.Text.StartsWith("##")).Text;
             if (upstreamInfo != null)
             {
                 var upstreamBranchName = upstreamInfo.Split("...", StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(1);
+
+                if (!string.IsNullOrEmpty(upstreamBranchName))
+                {
+                    // 'origin/master' part of 'origin/master [behind 1]'
+                    return new string(upstreamBranchName.TakeWhile(ch => ch != ' ').ToArray());
+                }
 
                 return upstreamBranchName;
             }

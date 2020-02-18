@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AspNetCoreIISDeployer.Application.Exceptions;
 using AspNetCoreIISDeployer.Application.Services.Git;
@@ -14,12 +15,16 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 
         private readonly IGitService gitService;
 
+        private readonly object periodicRepoFetchRegistrationCounterLock = new object();
         private readonly object repoUpdatedCallbacksLock = new object();
         private readonly Dictionary<string, List<Func<Task>>> repoUpdatedCallbacks = new Dictionary<string, List<Func<Task>>>();
+        private readonly Dictionary<string, int> periodicRepoFetchRegistrationCounter = new Dictionary<string, int>();
 
         public RepositoryService(IGitService gitService)
         {
             this.gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
+
+            StartPeriodicFetchLoop();
         }
 
         public void SubscribeToRepositoryUpdated(string repositoryPath, Func<Task> callback)
@@ -42,6 +47,53 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
                 }
 
                 repoUpdatedCallbacks[repositoryPath].Add(callback);
+            }
+        }
+
+        public void RegisterPeriodicFetchForRepository(string repositoryPath)
+        {
+            if (repositoryPath is null)
+            {
+                throw new ArgumentNullException(nameof(repositoryPath));
+            }
+
+            var repositoryRoot = FindRepositoryRoot(repositoryPath);
+
+            lock (periodicRepoFetchRegistrationCounterLock)
+            {
+                if (!periodicRepoFetchRegistrationCounter.ContainsKey(repositoryRoot))
+                {
+                    periodicRepoFetchRegistrationCounter.Add(repositoryRoot, 1);
+                }
+                else
+                {
+                    ++periodicRepoFetchRegistrationCounter[repositoryRoot];
+                }
+            }
+        }
+
+        public void UnregisterPeriodicFetchForRepository(string repositoryPath)
+        {
+            if (repositoryPath is null)
+            {
+                throw new ArgumentNullException(nameof(repositoryPath));
+            }
+
+            var repositoryRoot = FindRepositoryRoot(repositoryPath);
+
+            lock (periodicRepoFetchRegistrationCounterLock)
+            {
+                if (!periodicRepoFetchRegistrationCounter.ContainsKey(repositoryRoot))
+                {
+                    // TODO: Throw better exception type
+                    throw new ArgumentException($"No periodic fetching is registered for repository '{repositoryPath}'.", nameof(repositoryPath));
+                }
+
+                --periodicRepoFetchRegistrationCounter[repositoryRoot];
+                if (periodicRepoFetchRegistrationCounter[repositoryRoot] == 0)
+                {
+                    periodicRepoFetchRegistrationCounter.Remove(repositoryRoot);
+                }
             }
         }
 
@@ -106,23 +158,51 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             throw new GitException($"The specified path '{repositoryPath}' is not in a git repository.");
         }
 
-        private async Task NotifyRepoUpdatedSubscribers(string siteName)
+        private async Task NotifyRepoUpdatedSubscribers(string repositoryPath)
         {
             List<Func<Task>> callbacks;
             lock (repoUpdatedCallbacksLock)
             {
-                if (!repoUpdatedCallbacks.ContainsKey(siteName))
+                if (!repoUpdatedCallbacks.ContainsKey(repositoryPath))
                 {
                     return;
                 }
 
-                callbacks = repoUpdatedCallbacks[siteName];
+                callbacks = repoUpdatedCallbacks[repositoryPath].ToList();
             }
 
-            foreach (var callback in repoUpdatedCallbacks[siteName])
+            foreach (var callback in repoUpdatedCallbacks[repositoryPath])
             {
                 await callback();
             }
+        }
+
+        private void StartPeriodicFetchLoop()
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    List<string> repoPaths;
+
+                    lock (periodicRepoFetchRegistrationCounterLock)
+                    {
+                        repoPaths = periodicRepoFetchRegistrationCounter.Where(pair => pair.Value > 0).Select(pair => pair.Key).ToList();
+                    }
+
+                    try
+                    {
+                        await Task.WhenAll(repoPaths.Select(repoPath => FetchAsync(repoPath, true, true)).ToList());
+                    }
+                    catch
+                    {
+                        // TODO: Do something with the error
+                    }
+
+                    // TODO: Make configurable
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+                }
+            });
         }
     }
 }
