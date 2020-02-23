@@ -154,7 +154,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             });
         }
 
-        public async Task<GitPublishInfo> GetGitPublishInfoAsync(string publishPath)
+        private async Task<GitPublishInfo> GetGitPublishInfoAsync(string publishPath)
         {
             var filePath = Path.Combine(publishPath, GitPublishInfoFileName);
 
@@ -171,7 +171,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             return GitPublishInfo.Empty;
         }
 
-        public Task<string> GetBoundCertificateHashAsync(AppModel appModel)
+        private Task<string> GetBoundCertificateHashAsync(AppModel appModel)
         {
             return Task.Run(() =>
             {
