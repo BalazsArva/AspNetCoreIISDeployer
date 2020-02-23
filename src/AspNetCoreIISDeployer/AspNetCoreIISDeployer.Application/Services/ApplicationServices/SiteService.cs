@@ -128,8 +128,12 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
         {
             return Task.Run(async () =>
             {
-                // TODO: Verify that there is actually a certificate bound to that port.
-                siteManagementService.UnbindCertificateFromSite(appModel.HttpsPort);
+                var boundCertificateHash = await GetBoundCertificateHashAsync(appModel);
+                if (!string.IsNullOrEmpty(boundCertificateHash))
+                {
+                    siteManagementService.UnbindCertificateFromSite(appModel.HttpsPort);
+                }
+
                 siteManagementService.Delete(appModel.SiteName);
 
                 // TODO: Maybe should check whether there are any more applications in this pool.
