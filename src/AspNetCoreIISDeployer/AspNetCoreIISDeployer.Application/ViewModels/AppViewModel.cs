@@ -49,7 +49,6 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
             var repositoryPath = repositoryService.FindRepositoryRoot(appModel.ProjectPath);
             repositoryService.SubscribeToRepositoryUpdated(repositoryPath, UpdateRepositoryInfoAsync);
-            siteService.SubscribeToSiteUpdated(appModel.SiteName, UpdatePublishInfoAsync);
 
             Initialize();
         }
@@ -144,31 +143,18 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
         private async void Initialize()
         {
-            await UpdatePublishInfoAsync();
+            await siteService.SubscribeToSiteUpdatesAsync(AppModel, OnSiteInfoUpdatedAsync);
+
             await UpdateRepositoryInfoAsync();
-            await UpdateCertificateInfoAsync();
         }
 
-        private async Task UpdateCertificateInfoAsync()
+        private Task OnSiteInfoUpdatedAsync(SiteInfoModel siteInfoModel)
         {
-            var certificateHash = await siteService.GetBoundCertificateHashAsync(AppModel);
+            SiteInfo.CertificateThumbprint = siteInfoModel.CertificateThumbprint;
+            PublishInfo.Branch = siteInfoModel.Branch;
+            PublishInfo.Commit = siteInfoModel.Commit;
 
-            SiteInfo.CertificateThumbprint = certificateHash;
-        }
-
-        private async Task UpdatePublishInfoAsync()
-        {
-            try
-            {
-                var publishedAppInfo = await siteService.GetGitPublishInfoAsync(AppModel.PublishPath);
-
-                PublishInfo.Branch = publishedAppInfo.Branch;
-                PublishInfo.Commit = publishedAppInfo.Commit;
-            }
-            catch (Exception e)
-            {
-                notificationService.NotifyError("Error", e.Message);
-            }
+            return Task.CompletedTask;
         }
 
         private async Task UpdateRepositoryInfoAsync()

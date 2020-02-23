@@ -6,7 +6,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 {
     public interface ISiteService
     {
-        void SubscribeToSiteUpdated(string siteName, Func<Task> callback);
+        Task SubscribeToSiteUpdatesAsync(AppModel appModel, Func<SiteInfoModel, Task> callback);
 
         Task PublishAppToSiteAsync(AppModel appModel);
 

@@ -20,8 +20,11 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
         private readonly IDotNetPublishService publishService;
         private readonly ISiteManagementService siteManagementService;
 
-        private readonly object siteUpdatedCallbacksLock = new object();
-        private readonly Dictionary<string, List<Func<Task>>> siteUpdatedCallbacks = new Dictionary<string, List<Func<Task>>>();
+        private readonly object siteUpdateCallbacksLock = new object();
+        private readonly Dictionary<string, List<Func<SiteInfoModel, Task>>> siteUpdateCallbacks = new Dictionary<string, List<Func<SiteInfoModel, Task>>>();
+
+        private readonly object siteInfoLookupLock = new object();
+        private readonly Dictionary<string, SiteInfoModel> siteInfoLookup = new Dictionary<string, SiteInfoModel>();
 
         public SiteService(IGitService gitService, IDotNetPublishService publishService, ISiteManagementService siteManagementService)
         {
@@ -30,11 +33,11 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             this.siteManagementService = siteManagementService ?? throw new ArgumentNullException(nameof(siteManagementService));
         }
 
-        public void SubscribeToSiteUpdated(string siteName, Func<Task> callback)
+        public async Task SubscribeToSiteUpdatesAsync(AppModel appModel, Func<SiteInfoModel, Task> callback)
         {
-            if (siteName is null)
+            if (appModel is null)
             {
-                throw new ArgumentNullException(nameof(siteName));
+                throw new ArgumentNullException(nameof(appModel));
             }
 
             if (callback is null)
@@ -42,15 +45,20 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
                 throw new ArgumentNullException(nameof(callback));
             }
 
-            lock (siteUpdatedCallbacksLock)
+            var siteName = appModel.SiteName;
+            lock (siteUpdateCallbacksLock)
             {
-                if (!siteUpdatedCallbacks.ContainsKey(siteName))
+                if (!siteUpdateCallbacks.ContainsKey(siteName))
                 {
-                    siteUpdatedCallbacks.Add(siteName, new List<Func<Task>>());
+                    siteUpdateCallbacks.Add(siteName, new List<Func<SiteInfoModel, Task>>());
                 }
 
-                siteUpdatedCallbacks[siteName].Add(callback);
+                siteUpdateCallbacks[siteName].Add(callback);
             }
+
+            var siteInfo = await RetrieveSiteInfoModelAsync(appModel, true);
+
+            await callback(siteInfo);
         }
 
         public Task PublishAppToSiteAsync(AppModel appModel)
@@ -74,7 +82,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
                     siteManagementService.Start(siteName);
                 }
 
-                await NotifySiteUpdatedSubscribersAsync(siteName);
+                await NotifySiteUpdateSubscribersAsync(appModel, false);
             });
         }
 
@@ -120,7 +128,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
                 siteManagementService.Create(appModel.AppPoolName, appModel.SiteName, appModel.HttpPort, appModel.HttpsPort, appModel.CertificateThumbprint, appModel.PublishPath);
                 siteManagementService.SetServerAutoStart(appModel.SiteName, true);
 
-                await NotifySiteUpdatedSubscribersAsync(appModel.SiteName);
+                await NotifySiteUpdateSubscribersAsync(appModel, false);
             });
         }
 
@@ -142,7 +150,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 
                 Directory.Delete(appModel.PublishPath, true);
 
-                await NotifySiteUpdatedSubscribersAsync(appModel.SiteName);
+                await NotifySiteUpdateSubscribersAsync(appModel, false);
             });
         }
 
@@ -181,23 +189,57 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             });
         }
 
-        private async Task NotifySiteUpdatedSubscribersAsync(string siteName)
+        private async Task NotifySiteUpdateSubscribersAsync(AppModel appModel, bool useCachedSiteInfo)
         {
-            List<Func<Task>> callbacks;
-            lock (siteUpdatedCallbacksLock)
+            if (appModel is null)
             {
-                if (!siteUpdatedCallbacks.ContainsKey(siteName))
+                throw new ArgumentNullException(nameof(appModel));
+            }
+
+            var siteName = appModel.SiteName;
+            var siteInfo = await RetrieveSiteInfoModelAsync(appModel, useCachedSiteInfo);
+
+            List<Func<SiteInfoModel, Task>> callbacks;
+            lock (siteUpdateCallbacksLock)
+            {
+                if (!siteUpdateCallbacks.ContainsKey(siteName))
                 {
                     return;
                 }
 
-                callbacks = siteUpdatedCallbacks[siteName];
+                callbacks = siteUpdateCallbacks[siteName].ToList();
             }
 
-            foreach (var callback in siteUpdatedCallbacks[siteName])
+            foreach (var callback in callbacks)
             {
-                await callback();
+                await callback(siteInfo);
             }
+        }
+
+        private async Task<SiteInfoModel> RetrieveSiteInfoModelAsync(AppModel appModel, bool useCache)
+        {
+            if (appModel is null)
+            {
+                throw new ArgumentNullException(nameof(appModel));
+            }
+
+            var siteName = appModel.SiteName;
+            if (siteInfoLookup.ContainsKey(siteName) && useCache)
+            {
+                return siteInfoLookup[siteName];
+            }
+
+            var gitPublishsInfo = await GetGitPublishInfoAsync(appModel.PublishPath);
+            var certificateThumbprint = await GetBoundCertificateHashAsync(appModel);
+
+            var siteInfo = new SiteInfoModel(gitPublishsInfo.Branch, gitPublishsInfo.Commit, certificateThumbprint);
+
+            lock (siteInfoLookupLock)
+            {
+                siteInfoLookup[siteName] = siteInfo;
+            }
+
+            return siteInfo;
         }
 
         private async Task WriteGitInfoFilesAsync(string projectPath, string publishPath)
