@@ -25,5 +25,7 @@
         bool AppPoolExists(string appPoolName);
 
         bool SiteExists(string siteName);
+
+        string GetBoundCertificateHash(Port httpsPort);
     }
 }

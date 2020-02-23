@@ -112,8 +112,8 @@
                                                     <Run>NYI</Run>
                                                 </TextBlock>
                                                 <TextBlock Margin="3">
-                                                    <Run FontWeight="SemiBold">Certificate hash (NYI): </Run>
-                                                    <Run>NYI</Run>
+                                                    <Run FontWeight="SemiBold">Certificate hash: </Run>
+                                                    <Run Text="{Binding Path=SiteInfo.CertificateThumbprint, Mode=OneWay}" />
                                                 </TextBlock>
                                             </StackPanel>
 

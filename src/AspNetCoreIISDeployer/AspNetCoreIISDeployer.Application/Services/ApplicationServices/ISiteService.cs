@@ -21,5 +21,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
         Task DeleteSiteAsync(AppModel appModel);
 
         Task<GitPublishInfo> GetGitPublishInfoAsync(string publishPath);
+
+        Task<string> GetBoundCertificateHashAsync(AppModel appModel);
     }
 }

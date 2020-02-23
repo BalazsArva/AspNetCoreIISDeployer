@@ -12,6 +12,8 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
         private const string AppCmdListAppPoolsCommandArgument = "list apppool";
         private const string AppCmdListSitesCommandArgument = "list site";
 
+        private const string NetShCertHashOutputLabel = "Certificate Hash";
+
         private const string EmptyAppId = "00000000000000000000000000000000";
 
         public SiteManagementService(IISMangementConfiguration configuration) : base(configuration)
@@ -266,6 +268,32 @@ namespace AspNetCoreIISDeployer.Application.Services.IIS
             var sites = ListSites();
 
             return sites.Any(x => string.Equals(x.Name, siteName, StringComparison.Ordinal));
+        }
+
+        public string GetBoundCertificateHash(Port httpsPort)
+        {
+            var commandOutput = ExecuteNetShCommand($"http show sslcert ipport=0.0.0.0:{httpsPort}");
+
+            var foundCertificateHashValues = commandOutput.Output
+                .Where(line => !line.IsError)
+                .Select(line => line.Text.Trim())
+                .Where(line => line.StartsWith(NetShCertHashOutputLabel, StringComparison.OrdinalIgnoreCase))
+                .Select(line => line.Split(':', StringSplitOptions.RemoveEmptyEntries).ElementAtOrDefault(1) ?? string.Empty)
+                .Select(certHash => certHash.Trim())
+                .Where(certHash => !string.IsNullOrEmpty(certHash))
+                .ToList();
+
+            if (foundCertificateHashValues.Count == 1)
+            {
+                return foundCertificateHashValues[0];
+            }
+
+            if (foundCertificateHashValues.Count > 1)
+            {
+                throw new SiteManagementException("Found more than one bound certificates for the specified HTTPS port.");
+            }
+
+            throw new SiteManagementException("Could not find a bound certificate for the specified HTTPS port.");
         }
 
         private static string GenerateAppId(Port httpsPort)

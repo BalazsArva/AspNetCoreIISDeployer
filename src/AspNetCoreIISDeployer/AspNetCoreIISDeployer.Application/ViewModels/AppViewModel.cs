@@ -27,6 +27,7 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
 
         private PublishInfoViewModel publishInfo = new PublishInfoViewModel();
         private RepositoryInfoViewModel repositoryInfo = new RepositoryInfoViewModel();
+        private SiteInfoViewModel siteInfo = new SiteInfoViewModel();
 
         public AppViewModel(INotificationService notificationService, ISiteService siteService, IRepositoryService repositoryService, AppModel appModel)
         {
@@ -99,6 +100,20 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
             }
         }
 
+        public SiteInfoViewModel SiteInfo
+        {
+            get { return siteInfo; }
+            set
+            {
+                if (siteInfo != value)
+                {
+                    siteInfo = value;
+
+                    NotifyPropertyChanged(nameof(SiteInfo));
+                }
+            }
+        }
+
         public bool EnableSiteManagement
         {
             get { return enableSiteManagement; }
@@ -131,6 +146,14 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         {
             await UpdatePublishInfoAsync();
             await UpdateRepositoryInfoAsync();
+            await UpdateCertificateInfoAsync();
+        }
+
+        private async Task UpdateCertificateInfoAsync()
+        {
+            var certificateHash = await siteService.GetBoundCertificateHashAsync(AppModel);
+
+            SiteInfo.CertificateThumbprint = certificateHash;
         }
 
         private async Task UpdatePublishInfoAsync()

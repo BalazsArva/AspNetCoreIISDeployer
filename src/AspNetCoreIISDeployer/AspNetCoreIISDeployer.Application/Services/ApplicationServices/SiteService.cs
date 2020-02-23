@@ -159,6 +159,24 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             return GitPublishInfo.Empty;
         }
 
+        public Task<string> GetBoundCertificateHashAsync(AppModel appModel)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    // TODO: Return early if there is no HTTPS port specified.
+                    var certHash = siteManagementService.GetBoundCertificateHash(appModel.HttpsPort);
+
+                    return certHash;
+                }
+                catch
+                {
+                    return null;
+                }
+            });
+        }
+
         private async Task NotifySiteUpdatedSubscribersAsync(string siteName)
         {
             List<Func<Task>> callbacks;
