@@ -140,7 +140,7 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
         {
             return Task.Run(async () =>
             {
-                var boundCertificateHash = await GetBoundCertificateHashAsync(appModel);
+                var boundCertificateHash = await GetBoundCertificateHashAsync(appModel.HttpsPort);
                 if (!string.IsNullOrEmpty(boundCertificateHash))
                 {
                     siteManagementService.UnbindCertificateFromSite(appModel.HttpsPort);
@@ -202,16 +202,14 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             }
         }
 
-        private Task<string> GetBoundCertificateHashAsync(AppModel appModel)
+        private Task<string> GetBoundCertificateHashAsync(int httpsPort)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    // TODO: Return early if there is no HTTPS port specified.
-                    var certHash = siteManagementService.GetBoundCertificateHash(appModel.HttpsPort);
-
-                    return certHash;
+                    // TODO: Return early if there is no HTTPS port specified. Also keep in mind that the Port struct's ctor throws an exception when the value is not in the allowed range.
+                    return siteManagementService.GetBoundCertificateHash(httpsPort);
                 }
                 catch
                 {
@@ -256,12 +254,19 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
 
             var publishPath = appModel.PublishPath;
             var siteName = appModel.SiteName;
-            if (siteInfoLookup.ContainsKey(siteName) && useCache)
+
+            if (useCache)
             {
-                return siteInfoLookup[siteName];
+                lock (siteInfoLookupLock)
+                {
+                    if (siteInfoLookup.ContainsKey(siteName))
+                    {
+                        return siteInfoLookup[siteName];
+                    }
+                }
             }
 
-            var certificateThumbprint = await GetBoundCertificateHashAsync(appModel);
+            var certificateThumbprint = await GetBoundCertificateHashAsync(appModel.HttpsPort);
             var environment = await GetEnvironmentAsync(publishPath);
             var gitPublishsInfo = await GetGitPublishInfoAsync(publishPath);
 
