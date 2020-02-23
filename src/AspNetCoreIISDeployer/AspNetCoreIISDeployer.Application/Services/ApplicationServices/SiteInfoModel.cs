@@ -2,12 +2,15 @@
 {
     public class SiteInfoModel
     {
-        public SiteInfoModel(string branch, string commit, string certificateThumbprint)
+        public SiteInfoModel(string environment, string branch, string commit, string certificateThumbprint)
         {
+            Environment = environment;
             Branch = branch;
             Commit = commit;
             CertificateThumbprint = certificateThumbprint;
         }
+
+        public string Environment { get; }
 
         public string Branch { get; }
 

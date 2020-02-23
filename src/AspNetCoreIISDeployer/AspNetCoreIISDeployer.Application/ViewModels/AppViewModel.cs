@@ -151,6 +151,8 @@ namespace AspNetCoreIISDeployer.Application.ViewModels
         private Task OnSiteInfoUpdatedAsync(SiteInfoModel siteInfoModel)
         {
             SiteInfo.CertificateThumbprint = siteInfoModel.CertificateThumbprint;
+            SiteInfo.Environment = siteInfoModel.Environment;
+
             PublishInfo.Branch = siteInfoModel.Branch;
             PublishInfo.Commit = siteInfoModel.Commit;
 

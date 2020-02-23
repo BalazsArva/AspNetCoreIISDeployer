@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using AspNetCoreIISDeployer.Application.Models;
 using AspNetCoreIISDeployer.Application.Services.DotNet;
 using AspNetCoreIISDeployer.Application.Services.Git;
@@ -15,6 +17,8 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
         private const string BranchEntryPrefix = "branch=";
         private const string CommitEntryPrefix = "commit=";
         private const string GitPublishInfoFileName = "git.publishinfo";
+
+        private const string WebConfigFileName = "web.config";
 
         private readonly IGitService gitService;
         private readonly IDotNetPublishService publishService;
@@ -171,6 +175,33 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
             return GitPublishInfo.Empty;
         }
 
+        private async Task<string> GetEnvironmentAsync(string publishPath)
+        {
+            var webConfigFilePath = Path.Join(publishPath, WebConfigFileName);
+
+            if (!File.Exists(webConfigFilePath))
+            {
+                return null;
+            }
+
+            using (var inputStream = File.OpenRead(webConfigFilePath))
+            {
+                var webConfig = await XDocument.LoadAsync(inputStream, LoadOptions.None, CancellationToken.None);
+
+                var aspNetCoreEnvironmentHolderNodes = webConfig
+                    .Descendants("environmentVariable")
+                    .Where(node =>
+                    {
+                        var attribute = node.Attribute("name");
+
+                        return attribute != null && attribute.Value == "ASPNETCORE_ENVIRONMENT";
+                    })
+                    .ToList();
+
+                return aspNetCoreEnvironmentHolderNodes.LastOrDefault()?.Attribute("value")?.Value;
+            }
+        }
+
         private Task<string> GetBoundCertificateHashAsync(AppModel appModel)
         {
             return Task.Run(() =>
@@ -223,16 +254,18 @@ namespace AspNetCoreIISDeployer.Application.Services.ApplicationServices
                 throw new ArgumentNullException(nameof(appModel));
             }
 
+            var publishPath = appModel.PublishPath;
             var siteName = appModel.SiteName;
             if (siteInfoLookup.ContainsKey(siteName) && useCache)
             {
                 return siteInfoLookup[siteName];
             }
 
-            var gitPublishsInfo = await GetGitPublishInfoAsync(appModel.PublishPath);
             var certificateThumbprint = await GetBoundCertificateHashAsync(appModel);
+            var environment = await GetEnvironmentAsync(publishPath);
+            var gitPublishsInfo = await GetGitPublishInfoAsync(publishPath);
 
-            var siteInfo = new SiteInfoModel(gitPublishsInfo.Branch, gitPublishsInfo.Commit, certificateThumbprint);
+            var siteInfo = new SiteInfoModel(environment, gitPublishsInfo.Branch, gitPublishsInfo.Commit, certificateThumbprint);
 
             lock (siteInfoLookupLock)
             {

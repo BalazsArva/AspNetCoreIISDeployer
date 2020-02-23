@@ -3,6 +3,7 @@
     public class SiteInfoViewModel : ViewModelBase
     {
         private string certificateThumbprint = "";
+        private string environment = "";
 
         public string CertificateThumbprint
         {
@@ -16,6 +17,21 @@
 
                 certificateThumbprint = value;
                 NotifyPropertyChanged(nameof(CertificateThumbprint));
+            }
+        }
+
+        public string Environment
+        {
+            get { return environment; }
+            set
+            {
+                if (value == environment)
+                {
+                    return;
+                }
+
+                environment = value;
+                NotifyPropertyChanged(nameof(Environment));
             }
         }
     }

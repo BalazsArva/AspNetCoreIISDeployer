@@ -108,8 +108,8 @@
                                                     <Run Text="{Binding Path=PublishInfo.Commit, Mode=OneWay}" />
                                                 </TextBlock>
                                                 <TextBlock Margin="3">
-                                                    <Run FontWeight="SemiBold">Environment (NYI): </Run>
-                                                    <Run>NYI</Run>
+                                                    <Run FontWeight="SemiBold">Environment: </Run>
+                                                    <Run Text="{Binding Path=SiteInfo.Environment, Mode=OneWay}" />
                                                 </TextBlock>
                                                 <TextBlock Margin="3">
                                                     <Run FontWeight="SemiBold">Certificate hash: </Run>
